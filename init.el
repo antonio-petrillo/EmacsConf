@@ -8,4 +8,5 @@
   (require 'init-keys)
   (require 'init-utils)
   (require 'init-completion)
-  (require 'init-ui))
+  (require 'init-ui)
+  (require 'init-app))

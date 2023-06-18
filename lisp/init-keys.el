@@ -39,6 +39,8 @@
     "b" '(:ignore t :which-key "buffer")
     "br"  'revert-buffer
     "bk"  'kill-current-buffer
+    "bb"  'switch-to-buffer
+    "bi"  'ibuffer
     "f" '(:ignore t :which-key "file")
     "ff"  'find-file
     "fs" 'save-buffer
