@@ -34,6 +34,7 @@
 	:demand
 	:config
 	(evil-snipe-mode +1)
+	(setq evil-snipe-scope 'buffer))
 
 (use-package evil-surround
   :general
@@ -43,7 +44,6 @@
   (:states 'visual
    "S" 'evil-surround-region
    "gS" 'evil-Surround-region))
-  (evil-snipe-override-mode +1))
 
 (use-package evil-indent-plus
 	:after evil
@@ -51,10 +51,10 @@
   :config
   (define-key evil-inner-text-objects-map "i" 'evil-indent-plus-i-indent)
   (define-key evil-outer-text-objects-map "i" 'evil-indent-plus-a-indent)
-	(define-key evil-inner-text-objects-map "k" 'evil-indent-plus-i-indent-up)
-	(define-key evil-outer-text-objects-map "k" 'evil-indent-plus-a-indent-up)
-	(define-key evil-inner-text-objects-map "j" 'evil-indent-plus-i-indent-up-down)
-	(define-key evil-outer-text-objects-map "j" 'evil-indent-plus-a-indent-up-down))
+  (define-key evil-inner-text-objects-map "k" 'evil-indent-plus-i-indent-up)
+  (define-key evil-outer-text-objects-map "k" 'evil-indent-plus-a-indent-up)
+  (define-key evil-inner-text-objects-map "j" 'evil-indent-plus-i-indent-up-down)
+  (define-key evil-outer-text-objects-map "j" 'evil-indent-plus-a-indent-up-down))
 
 (use-package which-key
   :demand
@@ -71,6 +71,45 @@
   (which-key-mode))
 
 (use-package all-the-icons)
+
+(use-package evil-multiedit
+  :after evil
+  :init
+  (evil-define-key 'normal 'global
+	(kbd "M-a")   #'evil-multiedit-match-symbol-and-next
+	(kbd "M-A")   #'evil-multiedit-match-symbol-and-prev)
+
+  (evil-define-key 'visual 'global
+	"R"           #'evil-multiedit-match-all
+	(kbd "M-a")   #'evil-multiedit-match-and-next
+	(kbd "M-A")   #'evil-multiedit-match-and-prev)
+
+  (evil-define-key '(visual normal) 'global
+	(kbd "C-M-a") #'evil-multiedit-restore)
+
+  (with-eval-after-load 'evil-mutliedit
+    (evil-define-key 'multiedit 'global
+      (kbd "M-a")   #'evil-multiedit-match-and-next
+      (kbd "M-S-a") #'evil-multiedit-match-and-prev
+      (kbd "RET")   #'evil-multiedit-toggle-or-restrict-region)
+    (evil-define-key '(multiedit multiedit-insert) 'global
+      (kbd "C-n")   #'evil-multiedit-next
+      (kbd "C-p")   #'evil-multiedit-prev)))
+
+(use-package evil-org
+  :after '(org evil)
+  :hook (org-mode . (lambda () evil-org-mode))
+  :config
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
+
+(use-package emacs
+  :init
+  (electric-pair-mode 1)
+  (push '(?{ . ?}) electric-pair-pairs))
+
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
 
 (provide 'init-utils)
 ;;; init-utils.el ends here

@@ -43,7 +43,7 @@
   (setq locale-coding-system 'utf-8
         coding-system-for-read 'utf-8
         coding-system-for-write 'utf-8)
-(set-terminal-coding-system 'utf-8)
+  (set-terminal-coding-system 'utf-8)
   (set-keyboard-coding-system 'utf-8)
   (set-selection-coding-system 'utf-8)
   (prefer-coding-system 'utf-8)
@@ -69,10 +69,6 @@
 
   (setq vc-follow-symlinks t)
 
-  (when (window-system)
-    (tool-bar-mode -1)
-    (toggle-scroll-bar -1))
-
   (show-paren-mode t)
 
   (setq byte-compile-warnings '(not free-vars unresolved noruntime lexical make-local))
@@ -82,14 +78,14 @@
 
   (display-time-mode -1)
   (setq column-number-mode t)
+  (global-display-line-numbers-mode)
   (setq display-line-numbers 'relative)
 
   (setq-default indent-tabs-mode t)
   (setq-default tab-width 4)
 
-  (setq tab-always-indent 'complete))
-
   (winner-mode t)
+  (setq tab-always-indent 'complete))
 
 (provide 'init-core)
 ;;; init-core.el ends here

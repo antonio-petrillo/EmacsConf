@@ -2,15 +2,14 @@
 
 (use-package emacs
   :init
+  (global-unset-key (kbd "C-z"))
+  (global-unset-key (kbd "C-j"))
+  (global-unset-key (kbd "M-a"))
   (global-set-key (kbd "C-=") 'text-scale-increase)
   (global-set-key (kbd "C--") 'text-scale-decrease))
 
 (use-package emacs
   :init
-  (when (eq system-type 'darwin)
-    (setq mac-command-modifier 'super)
-    (setq mac-option-modifier 'meta)
-    (setq mac-control-modifier 'control))
   (defadvice keyboard-escape-quit
       (around keyboard-escape-quit-dont-close-windows activate)
     (let ((buffer-quit-function (lambda () ())))
@@ -103,6 +102,15 @@
 	(setq evil-collection-magit-use-z-for-folds nil)
   :config
   (evil-collection-init))
+
+(use-package evil-escape
+  :after evil
+  :init
+  (evil-escape-mode 1)
+  :config
+  (setq-default evil-escape-delay 0.2)
+  (setq-default evil-escape-key-sequence "jk")
+  (setq-default evil-escape-unordered-key-sequence t))
 
 (provide 'init-keys)
 ;;; init-keys.el ends here

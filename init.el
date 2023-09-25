@@ -9,4 +9,8 @@
   (require 'init-utils)
   (require 'init-completion)
   (require 'init-ui)
+  (require 'init-ms-windows)
+  (require 'init-mac-os)
+  (require 'init-linux)
+  (require 'init-graphical-environment)
   (require 'init-app))
