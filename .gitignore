@@ -2,3 +2,6 @@
 /auto-save-list/
 /recentf
 eshell/history
+/elpa/*
+/org-persist/*
+/eshell/*
