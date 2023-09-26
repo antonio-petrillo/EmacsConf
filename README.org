@@ -1,0 +1,13 @@
+* Config
+My vanilla emacs config with support for multiple platforms.
+* Packages to add
++ Magit
++ Forge
++ Eshell aliases
++ powershell for windows
++ browse-url for gui version
++ yasnippets
+* Module to create
+Create module that should be loaded only when needed, maybe add also a toggle:
++ LSP, DAP
++ Drop frame

@@ -9,6 +9,7 @@
   (global-set-key (kbd "C--") 'text-scale-decrease))
 
 (use-package emacs
+  :bind* ("M-<return>" . other-window)
   :init
   (defadvice keyboard-escape-quit
       (around keyboard-escape-quit-dont-close-windows activate)
@@ -54,6 +55,7 @@
     "hk" 'describe-key
     "hK" 'describe-keymap
     "hp" 'describe-package
+    "ht" 'load-theme
     "hv" 'describe-variable
 
     "u" '(universal-argument :wk "universal")
@@ -101,7 +103,8 @@
 	:init
 	(setq evil-collection-magit-use-z-for-folds nil)
   :config
-  (evil-collection-init))
+  (evil-collection-init)
+  (evil-collection-unimpaired-mode -1))
 
 (use-package evil-escape
   :after evil

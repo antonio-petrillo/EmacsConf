@@ -69,27 +69,79 @@
   :init
   (setq avy-style 'pre))
 
-(use-package vterm)
+(with-windows
+	(use-package eshell-toggle
+	  :init
+	  (nto/leader-keys
+		"ot" 'eshell-toggle)))
 
-(use-package vterm-toggle
-  :general
+(without-windows
+  (use-package vterm)
+
+  (use-package vterm-toggle
+	:general
+	(nto/leader-keys
+	  "ot" 'vterm-toggle))
+
+  (use-package multi-vterm
+	:config
+	(add-hook 'vterm-mode-hook
+              (lambda ()
+				(evil-insert-state)))
+	(define-key vterm-mode-map [return] #'vterm-send-return)
+	:general
+	(nto/local-leader-keys
+	  "c" 'multi-vterm
+	  "n" 'multi-vterm-next
+	  "p" 'multi-vterm-prev
+	  "l" 'multi-vterm-next
+	  "h" 'multi-vterm-prev)))
+
+(use-package eshell
+  :init
+  (setq ;; eshell-buffer-shorthand t ...  Can't see Bug#19391
+        eshell-scroll-to-bottom-on-input 'all
+        eshell-error-if-no-glob t
+        eshell-hist-ignoredups t
+        eshell-save-history-on-exit t
+        eshell-prefer-lisp-functions nil
+        eshell-destroy-buffer-when-process-dies t))
+
+(use-package google-translate
+  :init
+  (setq google-translate-translation-directions-alist
+        '(("it" . "en") ("en" . "it")))
+  (setq google-translate-default-source-language "it")
+  (setq google-translate-default-target-language "en")
   (nto/leader-keys
-   "ot" 'vterm-toggle))
+	"lt" 'google-translate-smooth-translate
+	"lT" 'google-translate-query-translate
+	"lp" 'google-translate-at-point
+	"lP" 'google-translate-at-point-reverse))
 
-(use-package multi-vterm
+(use-package olivetti
+  :init
+  (nto/leader-keys
+	"oo" 'olivetti-mode))
+
+(use-package browse-kill-ring
+  :init
+  (setq browse-kill-ring-highlight-current-entry t)
+  (setq browse-kill-ring-separator "?? ------------------------- ?")
+  (setq browse-kill-ring-separator-face 'shadow)
+  (setq browse-kill-ring-show-preview nil)
+  (global-set-key (kbd "M-y") 'browse-kill-ring)
   :config
-  (add-hook 'vterm-mode-hook
-            (lambda ()
-              (evil-insert-state)))
-  (define-key vterm-mode-map [return] #'vterm-send-return)
-  :general
-  (nto/local-leader-keys
-   "c" 'multi-vterm
-   "n" 'multi-vterm-next
-   "p" 'multi-vterm-prev
-   "l" 'multi-vterm-next
-   "h" 'multi-vterm-prev))
-
+  (define-key browse-kill-ring-mode-map (kbd "d") 'browse-kill-ring-delete)
+  (define-key browse-kill-ring-mode-map (kbd "j") 'browse-kill-ring-forward)
+  (define-key browse-kill-ring-mode-map (kbd "k") 'browse-kill-ring-previouse)
+  (define-key browse-kill-ring-mode-map (kbd "/") 'browse-kill-ring-occur)
+  (define-key browse-kill-ring-mode-map (kbd "n") 'browse-kill-ring-search-forward)
+  (define-key browse-kill-ring-mode-map (kbd "p") 'browse-kill-ring-search-backward)
+  (define-key browse-kill-ring-mode-map (kbd "C-j") 'browse-kill-ring-forward)
+  (define-key browse-kill-ring-mode-map (kbd "C-k") 'browse-kill-ring-previous)
+  (define-key browse-kill-ring-mode-map (kbd "<escapte>") 'browse-kill-ring-quit)
+  (define-key browse-kill-ring-mode-map (kbd "q") 'browse-kill-ring-quit))
 
 (provide 'init-app)
 ;;; init-app.el ends here

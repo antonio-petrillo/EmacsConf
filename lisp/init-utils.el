@@ -58,6 +58,7 @@
 
 (use-package which-key
   :demand
+  :diminish which-key-mode
   :general
   (nto/leader-keys
     "?" 'which-key-show-top-level)
