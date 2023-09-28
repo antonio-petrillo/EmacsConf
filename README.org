@@ -1,7 +1,7 @@
 * Config
 My vanilla emacs config with support for multiple platforms.
-* [50%] Packages to add
-+ [ ] Magit
+* [66%] Packages to add
++ [X] Magit
 + [ ] Forge
 + [ ] Eshell aliases
 + [X] powershell for windows
@@ -18,5 +18,5 @@ Create module that should be loaded only when needed, maybe add also a toggle:
 * [100%] Things to fix
 + [X] Fix tab in normal mode for org mode
 * [%] Stuff to learn
-+ [ ] Proper use of magit (for now I only use push, pull)
++ [ ] Proper use of magit and forge (for now I only use push, pull)
 + [ ] Paredit for lisp editing

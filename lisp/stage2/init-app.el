@@ -177,6 +177,5 @@
 	"g" '(:ignore t :wk "git")
 	"gg" 'magit-status))
 
-
 (provide 'init-app)
 ;;; init-app.el ends here
