@@ -147,10 +147,10 @@
 	"lp" 'google-translate-at-point
 	"lP" 'google-translate-at-point-reverse))
 
-(use-package olivetti
+(use-package darkroom
   :init
   (nto/leader-keys
-	"oo" 'olivetti-mode))
+	"ow" 'darkroom-tentative-mode))
 
 (use-package browse-kill-ring
   :init
