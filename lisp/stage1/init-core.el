@@ -24,6 +24,8 @@
 (setq comp-deferred-compilation-black-list nil)
 (setq use-package-compute-statistics t)
 
+(use-package diminish)
+
 (use-package emacs
   :init
   (setq inhibit-startup-screen t
@@ -31,9 +33,6 @@
         sentence-end-double-space nil
         ring-bell-function 'ignore
         frame-resize-pixelwise t)
-
-  (setq user-full-name "Antonio Petrillo"
-        user-mail-address "antonio.petrillo4@unina.it")
 
   (setq read-process-output-max (* 10 1024 1024)) ;; 10mb
 

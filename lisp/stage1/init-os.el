@@ -15,12 +15,9 @@
   (list 'if `(eq system-type 'darwin)
 		(cons 'progn body)))
 
-(defun neq (obj1 obj2)
-  (not (eq obj1 obj2)))
-
 (defmacro without-windows (&rest body)
   (declare (indent 1) (debut t))
-  (list 'if `(neq system-type 'windows-nt)
+  (list 'if `(nto/neq system-type 'windows-nt)
 		(cons 'progn body)))
 
 (with-mac-os

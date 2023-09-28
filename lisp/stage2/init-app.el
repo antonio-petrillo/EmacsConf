@@ -22,26 +22,45 @@
 
 (use-package dired
   :straight (:type built-in)
+  :after evil
   :hook
   (dired-mode . dired-hide-details-mode)
   :general
   (nto/leader-keys
-    "fd" 'dired
-    "." 'dired-jump
+    "fd" 'dired-jump
     "fj" 'dired-jump)
   :config
-  (evil-collection-define-key 'normal 'dired-mode-map
+  (evil-define-key 'normal dired-mode-map
     "h" 'dired-up-directory
-    "l" 'dired-find-file)
+    "l" 'dired-find-file
+	"m" 'dired-mark
+	"u" 'dired-unmark
+	"t" 'dired-toggle-marks
+	"C" 'dired-do-copy
+	"D" 'dired-do-delete
+	"J" 'dired-goto-file
+	"M" 'dired-do-chmod
+	"O" 'dired-do-chown
+	"R" 'dired-do-rename
+	"T" 'dired-do-touch
+	"Y" 'dired-copy-filename-as-kill
+	"+" 'dired-create-directory
+	"-" 'dired-up-directory
+	(kbd "% l") 'dired-downcase
+	(kbd "% u") 'dired-upcase
+	(kbd "; d") 'epa-dired-do-decrypt
+	(kbd "; e") 'epa-dired-do-encrypt)
   :init
+  (setq delete-by-moving-to-trash t)
   (setq dired-listing-switches "-lah")
   (setq dired-dwim-target t)
   (setf dired-kill-when-opening-new-dired-buffer t)
 
 (use-package dired-hide-dotfiles
+  :after dired
   :hook (dired-mode . dired-hide-dotfiles-mode)
   :config
-  (evil-collection-define-key 'normal 'dired-mode-map
+  (evil-define-key 'normal dired-mode-map
     "H" 'dired-hide-dotfiles-mode)))
 
 (use-package undo-fu
@@ -62,6 +81,7 @@
 (use-package avy
   :general
   (nto/leader-keys
+	"j" '(:ignore t :wk "jump")
     "jj" 'avy-goto-char
     "jl" 'avy-goto-line
     "jw" 'avy-goto-word-0)
@@ -70,10 +90,12 @@
   (setq avy-style 'pre))
 
 (with-windows
-	(use-package eshell-toggle
+	(use-package powershell
+	  :straight (powershell :type git
+							:host github
+							:repo "jschaf/powershell.el")
 	  :init
-	  (nto/leader-keys
-		"ot" 'eshell-toggle)))
+	  (nto/leader-keys "ot" 'powershell)))
 
 (without-windows
   (use-package vterm)
@@ -107,6 +129,11 @@
         eshell-prefer-lisp-functions nil
         eshell-destroy-buffer-when-process-dies t))
 
+(use-package eshell-toggle
+  :init
+  (nto/leader-keys
+	"oe" 'eshell-toggle))
+
 (use-package google-translate
   :init
   (setq google-translate-translation-directions-alist
@@ -114,6 +141,7 @@
   (setq google-translate-default-source-language "it")
   (setq google-translate-default-target-language "en")
   (nto/leader-keys
+	"l" '(:ignore t :wk "language")
 	"lt" 'google-translate-smooth-translate
 	"lT" 'google-translate-query-translate
 	"lp" 'google-translate-at-point
@@ -142,6 +170,13 @@
   (define-key browse-kill-ring-mode-map (kbd "C-k") 'browse-kill-ring-previous)
   (define-key browse-kill-ring-mode-map (kbd "<escapte>") 'browse-kill-ring-quit)
   (define-key browse-kill-ring-mode-map (kbd "q") 'browse-kill-ring-quit))
+
+(use-package magit
+  :init
+  (nto/leader-keys
+	"g" '(:ignore t :wk "git")
+	"gg" 'magit-status))
+
 
 (provide 'init-app)
 ;;; init-app.el ends here

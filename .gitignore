@@ -1,7 +1,12 @@
 /straight/
 /auto-save-list/
-/recentf
-eshell/history
+/recentf/*
+/eshell/history
 /elpa/*
 /org-persist/*
 /eshell/*
+/undo-fu-session/*
+/org-persist/*
+/vimish-fold/*
+/recentf
+/transient/

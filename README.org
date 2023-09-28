@@ -1,13 +1,22 @@
 * Config
 My vanilla emacs config with support for multiple platforms.
-* Packages to add
-+ Magit
-+ Forge
-+ Eshell aliases
-+ powershell for windows
-+ browse-url for gui version
-+ yasnippets
-* Module to create
+* [50%] Packages to add
++ [ ] Magit
++ [ ] Forge
++ [ ] Eshell aliases
++ [X] powershell for windows
++ [X] browse-url for gui version
++ [X] yasnippets
+* Docker 
+Add a docker based config with all the deps, see LT123.
+* [%] Modules to create
 Create module that should be loaded only when needed, maybe add also a toggle:
-+ LSP, DAP
-+ Drop frame
++ [ ] LSP, DAP
++ [ ] Drop frame
++ [ ] Org Mode
++ [ ] Move from logseq to denote or org roam (maybe the first since don't require sql lite which is a problem on win/mac)
+* [100%] Things to fix
++ [X] Fix tab in normal mode for org mode
+* [%] Stuff to learn
++ [ ] Proper use of magit (for now I only use push, pull)
++ [ ] Paredit for lisp editing

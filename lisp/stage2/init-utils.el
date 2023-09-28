@@ -1,7 +1,8 @@
 ;;; init-utils.el --- Description -*- lexical-binding: t; -*-
 
 (use-package gcmh
-  :demand
+  :diminish gcmh-mode
+  :demand 
   :config
   (gcmh-mode 1))
 
@@ -18,6 +19,7 @@
 (use-package evil-goggles
   :after evil
   :demand
+  :diminish evil-goggles-mode
   :init
   (setq evil-goggles-duration 0.05)
   :config
@@ -31,12 +33,15 @@
 
 (use-package evil-snipe
 	:after evil
+	:diminish evil-snipe-mode
+	:diminish evil-snipe-local-mode
 	:demand
 	:config
 	(evil-snipe-mode +1)
 	(setq evil-snipe-scope 'buffer))
 
 (use-package evil-surround
+  :diminish global-evil-surround-mode
   :general
   (:states 'operator
    "s" 'evil-surround-edit
@@ -46,8 +51,8 @@
    "gS" 'evil-Surround-region))
 
 (use-package evil-indent-plus
-	:after evil
-	:demand
+  :after evil
+  :demand
   :config
   (define-key evil-inner-text-objects-map "i" 'evil-indent-plus-i-indent)
   (define-key evil-outer-text-objects-map "i" 'evil-indent-plus-a-indent)
@@ -57,7 +62,7 @@
   (define-key evil-outer-text-objects-map "j" 'evil-indent-plus-a-indent-up-down))
 
 (use-package which-key
-  :demand
+  :demand t
   :diminish which-key-mode
   :general
   (nto/leader-keys
@@ -66,10 +71,11 @@
   (setq which-key-separator " ")
   (setq which-key-prefix-prefix "+")
   (setq which-key-show-early-on-C-h t)
-  (setq which-key-idle-delay 10000)
-  (setq which-key-idle-secondary-delay 0.05)
+  (setq which-key-idle-delay 0.5)
+  (setq which-key-idle-secondary-delay 0.5)
   :config
-  (which-key-mode))
+  (which-key-mode)
+  (which-key-setup-minibuffer))
 
 (use-package all-the-icons)
 
@@ -111,6 +117,16 @@
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
+
+(use-package evil-escape
+  :after evil
+  :diminish evil-escape-mode
+  :init
+  (evil-escape-mode 1)
+  :config
+  (setq-default evil-escape-delay 0.2)
+  (setq-default evil-escape-key-sequence "jk")
+  (setq-default evil-escape-unordered-key-sequence t))
 
 (provide 'init-utils)
 ;;; init-utils.el ends here

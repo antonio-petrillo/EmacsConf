@@ -30,19 +30,22 @@
   (general-create-definer nto/local-leader-keys
     :states '(normal visual)
     :keymaps 'override
-    :prefix ","
-    :global-prefix "SPC m")
+    :prefix "m"
+    :global-prefix "C-,")
 
   (nto/leader-keys
     "SPC" '(execute-extended-command :which-key "execute command")
     "<escape>" 'keyboard-escape-quit
+
     "b" '(:ignore t :which-key "buffer")
     "br"  'revert-buffer
     "bk"  'kill-current-buffer
     "bb"  'switch-to-buffer
     "bi"  'ibuffer
+
     "f" '(:ignore t :which-key "file")
     "ff"  'find-file
+    "."  'find-file
     "fs" 'save-buffer
 
     "h" '(:ignore t :which-key "describe")
@@ -57,6 +60,8 @@
     "hp" 'describe-package
     "ht" 'load-theme
     "hv" 'describe-variable
+
+    "o" '(:ignore t :wk "open")
 
     "u" '(universal-argument :wk "universal")
 
@@ -83,7 +88,7 @@
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
-  (setq evil-want-C-i-jump t)
+  (setq evil-want-C-i-jump nil)
   (setq evil-want-Y-yank-to-eol t)
   (setq evil-undo-system 'undo-fu)
   (setq evil-search-module 'evil-search)
@@ -99,21 +104,14 @@
 
 (use-package evil-collection
   :after evil
-  :defer 1
-	:init
-	(setq evil-collection-magit-use-z-for-folds nil)
-  :config
-  (evil-collection-init)
-  (evil-collection-unimpaired-mode -1))
-
-(use-package evil-escape
-  :after evil
+  :defer t
   :init
-  (evil-escape-mode 1)
+  (setq evil-collection-magit-use-z-for-folds nil)
   :config
-  (setq-default evil-escape-delay 0.2)
-  (setq-default evil-escape-key-sequence "jk")
-  (setq-default evil-escape-unordered-key-sequence t))
+  (setq evil-want-C-i-jump nil)
+  (evil-collection-init)
+  (evil-collection-unimpaired-mode -1)
+  (global-evil-collection-unimpaired-mode -1))
 
 (provide 'init-keys)
 ;;; init-keys.el ends here
