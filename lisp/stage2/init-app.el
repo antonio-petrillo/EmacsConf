@@ -130,6 +130,7 @@
         eshell-destroy-buffer-when-process-dies t))
 
 (use-package eshell-toggle
+  :after general
   :init
   (nto/leader-keys
 	"oe" '(eshell-toggle :wk "eshell")))

@@ -18,8 +18,8 @@
 
 (use-package general
   :after consult
-  :config
-  (general-evil-setup)
+  :init
+  (general-evil-setup))
 
   (general-create-definer nto/leader-keys
     :states '(normal insert visual emacs)
@@ -33,6 +33,13 @@
     :prefix "m"
     :global-prefix "C-,")
 
+
+(use-package evil
+  :after general
+  :general
+  (nto/leader-keys
+    "wv" '(evil-window-vsplit :wk "split v")
+    "ws" '(evil-window-split :wk "split o"))
   (nto/leader-keys
     "SPC" '(execute-extended-command :which-key "execute command")
     "<escape>" '(keyboard-escape-quit :wk "quit")
@@ -64,13 +71,13 @@
     "ht" '(consult-theme :wk "load theme")
     "hv" '(describe-variable :wk "variable")
 
-	"j" '(:ignore t :wk "jump")
-	"jc" '(consult-line :wk "consult")
+    "j" '(:ignore t :wk "jump")
+    "jc" '(consult-line :wk "consult")
 
     "o" '(:ignore t :wk "open")
 
-	"t" '(:ignore t :wk "toggle")
-	"tl" '(display-line-numbers-mode :wk "line numbers")
+    "t" '(:ignore t :wk "toggle")
+    "tl" '(display-line-numbers-mode :wk "line numbers")
 
     "u" '(universal-argument :wk "universal")
 
@@ -84,14 +91,10 @@
     "wD"  '(kill-buffer-and-window :wk "kill buffer and window")
     "wu"  '(winner-undo :wk "undo")
     "wr"  '(winner-redo :wk "redo")
-    "wm"  '(delete-other-windows :wk "maximize")))
+    "wm"  '(delete-other-windows :wk "maximize"))
 
-(use-package evil
-  :general
-  (nto/leader-keys
-    "wv" '(evil-window-vsplit :wk "split v")
-    "ws" '(evil-window-split :wk "split o"))
   :init
+
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)

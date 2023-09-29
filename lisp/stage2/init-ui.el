@@ -27,9 +27,9 @@
 	(add-to-list 'initial-frame-alist '(fullscreen . maximized))))
 
 (when (find-font (font-spec :name preferred-font))
-  (set-face-attribute 'default nil :font preferred-font :height 90)
-  (set-face-attribute 'fixed-pitch nil :font preferred-font :height 90)
-  (set-face-attribute 'variable-pitch nil :font preferred-font :height 90 :weight 'regular))
+  (set-face-attribute 'default nil :font preferred-font :height 120)
+  (set-face-attribute 'fixed-pitch nil :font preferred-font :height 120)
+  (set-face-attribute 'variable-pitch nil :font preferred-font :height 120 :weight 'regular))
 
 (with-window-system
 	(use-package all-the-icons-dired
