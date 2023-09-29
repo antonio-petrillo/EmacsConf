@@ -27,12 +27,12 @@
   (dired-mode . dired-hide-details-mode)
   :general
   (nto/leader-keys
-    "fd" 'dired-jump
-    "fj" 'dired-jump)
+    "fd" '(dired-jump :wk "find file"))
   :config
   (evil-define-key 'normal dired-mode-map
     "h" 'dired-up-directory
     "l" 'dired-find-file
+    "<return>" 'dired-find-file
 	"m" 'dired-mark
 	"u" 'dired-unmark
 	"t" 'dired-toggle-marks
@@ -81,10 +81,9 @@
 (use-package avy
   :general
   (nto/leader-keys
-	"j" '(:ignore t :wk "jump")
-    "jj" 'avy-goto-char
-    "jl" 'avy-goto-line
-    "jw" 'avy-goto-word-0)
+    "jj" '(avy-goto-char :wk "char")
+    "jl" '(avy-goto-line :wk "line")
+    "jw" '(avy-goto-word-0 :wk "word"))
   :hook (after-init . avy-setup-default)
   :init
   (setq avy-style 'pre))
@@ -95,7 +94,8 @@
 							:host github
 							:repo "jschaf/powershell.el")
 	  :init
-	  (nto/leader-keys "ot" 'powershell)))
+	  (nto/leader-keys
+		"ot" '(powershell :wk "powershell"))))
 
 (without-windows
   (use-package vterm)
@@ -103,7 +103,7 @@
   (use-package vterm-toggle
 	:general
 	(nto/leader-keys
-	  "ot" 'vterm-toggle))
+	  "ot" '(vterm-toggle :wk "vterm")))
 
   (use-package multi-vterm
 	:config
@@ -113,11 +113,11 @@
 	(define-key vterm-mode-map [return] #'vterm-send-return)
 	:general
 	(nto/local-leader-keys
-	  "c" 'multi-vterm
-	  "n" 'multi-vterm-next
-	  "p" 'multi-vterm-prev
-	  "l" 'multi-vterm-next
-	  "h" 'multi-vterm-prev)))
+	  "c" '(multi-vterm :wk "new term")
+	  "n" '(multi-vterm-next :wk "next term")
+	  "p" '(multi-vterm-prev :wk "prev term")
+	  "l" '(multi-vterm-next :wk "next term")
+	  "h" '(multi-vterm-prev :wk "prev term"))))
 
 (use-package eshell
   :init
@@ -132,7 +132,7 @@
 (use-package eshell-toggle
   :init
   (nto/leader-keys
-	"oe" 'eshell-toggle))
+	"oe" '(eshell-toggle :wk "eshell")))
 
 (use-package google-translate
   :init
@@ -141,16 +141,16 @@
   (setq google-translate-default-source-language "it")
   (setq google-translate-default-target-language "en")
   (nto/leader-keys
-	"l" '(:ignore t :wk "language")
-	"lt" 'google-translate-smooth-translate
-	"lT" 'google-translate-query-translate
-	"lp" 'google-translate-at-point
-	"lP" 'google-translate-at-point-reverse))
+	"l" '(:ignore t :wk "google translate")
+	"lt" '(google-translate-smooth-translate :wk "smooth translate")
+	"lT" '(google-translate-query-translate :wk "query translate")
+	"lp" '(google-translate-at-point :wk "point")
+	"lP" '(google-translate-at-point-reverse :wk "point reverse")))
 
 (use-package darkroom
   :init
   (nto/leader-keys
-	"ow" 'darkroom-tentative-mode))
+	"tw" '(darkroom-tentative-mode :wk "focus")))
 
 (use-package browse-kill-ring
   :init
@@ -158,7 +158,7 @@
   (setq browse-kill-ring-separator "?? ------------------------- ?")
   (setq browse-kill-ring-separator-face 'shadow)
   (setq browse-kill-ring-show-preview nil)
-  (global-set-key (kbd "M-y") 'browse-kill-ring)
+  (global-set-key (kbd "C-c M-y") 'browse-kill-ring)
   :config
   (define-key browse-kill-ring-mode-map (kbd "d") 'browse-kill-ring-delete)
   (define-key browse-kill-ring-mode-map (kbd "j") 'browse-kill-ring-forward)
@@ -175,7 +175,7 @@
   :init
   (nto/leader-keys
 	"g" '(:ignore t :wk "git")
-	"gg" 'magit-status))
+	"gg" '(magit-status :wk "status")))
 
 (provide 'init-app)
 ;;; init-app.el ends here

@@ -2,6 +2,7 @@
 (add-to-list 'load-path (expand-file-name "lisp/stage3" user-emacs-directory))
 
 (require 'init-data)
+(require 'init-programming)
 
 (provide 'init-stage3)
 

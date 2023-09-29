@@ -31,6 +31,14 @@
   (set-face-attribute 'fixed-pitch nil :font preferred-font :height 90)
   (set-face-attribute 'variable-pitch nil :font preferred-font :height 90 :weight 'regular))
 
+(with-mac-os
+  (customize-set-variable frame-resize-pixelwise t)
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+  (add-to-list 'default-frame-alist '(selected-frame) 'name nil))
+
+(with-window-system
+	(use-package all-the-icons-dired
+	  :hook (dired-mode . all-the-icons-dired-mode)))
 
 
 (provide 'init-ui)

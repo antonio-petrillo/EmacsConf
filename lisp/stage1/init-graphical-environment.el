@@ -2,12 +2,14 @@
 
 (defmacro with-window-system (&rest body)
   (declare (indent 1) (debut t))
-  (list 'if 'window-system
+  (list 'if 'display-graphic-p
 		(cons 'progn body)))
 
+
+;; TO-FIX: without a window system the value is not t
 (defmacro without-window-system (&rest body)
   (declare (indent 1) (debut t))
-  (list 'if (nto/neq 'window-system t)
+  (list 'if (nto/neq 'display-graphic-p t)
 		(cons 'progn body)))
 
 (with-window-system

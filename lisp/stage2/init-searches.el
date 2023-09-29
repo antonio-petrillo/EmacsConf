@@ -14,7 +14,7 @@
 (with-window-system
 	(nto/leader-keys
 	  "s" '(:ignore t :wk "search")
-	  "sg" 'nto/google-search))
+	  "sg" '(nto/google-search :wk "google")))
 
 (provide 'init-searches)
 ;;; init-ui.el ends here

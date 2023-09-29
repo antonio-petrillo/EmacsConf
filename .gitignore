@@ -1,4 +1,5 @@
 /straight/
+/.cache/*
 /auto-save-list/
 /recentf/*
 /eshell/history
@@ -11,3 +12,4 @@
 /recentf
 /transient/
 /server/
+.lsp*

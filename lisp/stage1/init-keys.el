@@ -12,12 +12,12 @@
   :bind* ("M-<return>" . other-window)
   :init
   (defadvice keyboard-escape-quit
-      (around keyboard-escape-quit-dont-close-windows activate)
-    (let ((buffer-quit-function (lambda () ())))
-      ad-do-it)))
+	  (around keyboard-escape-quit-dont-close-windows activate)
+	(let ((buffer-quit-function (lambda () ())))
+	  ad-do-it)))
 
 (use-package general
-  :demand t
+  :after consult
   :config
   (general-evil-setup)
 
@@ -35,55 +35,62 @@
 
   (nto/leader-keys
     "SPC" '(execute-extended-command :which-key "execute command")
-    "<escape>" 'keyboard-escape-quit
+    "<escape>" '(keyboard-escape-quit :wk "quit")
 
     "b" '(:ignore t :which-key "buffer")
-    "br"  'revert-buffer
-    "bk"  'kill-current-buffer
-    "bb"  'switch-to-buffer
-    "bi"  'ibuffer
+    "br"  '(revert-buffer :wk "revert")
+    "bk"  '(kill-current-buffer :wk "kill")
+    "bb"  '(consult-buffer :wk "switch")
+    "bi"  '(ibuffer :wk "ibuffer")
 
-    "f" '(:ignore t :which-key "file")
-    "ff"  'find-file
-    "."  'find-file
-    "fs" 'save-buffer
+    "f"  '(:ignore t :which-key "file")
+    "ff" '(find-file :wk "find")
+    "fg" '(consult-ripgrep :wk "grep")
+    "fF" '(consult-fd :wk "grep")
+    "."  '(find-file :wk "find")
+    "fs" '(save-buffer :wk "save")
+    "fr" '(consult-recent-file :wk "recent")
 
     "h" '(:ignore t :which-key "describe")
-    "he" 'view-echo-area-messages
-    "hf" 'describe-function
-    "hF" 'describe-face
-    "hl" 'view-lossage
-    "hL" 'find-library
-    "hm" 'describe-mode
-    "hk" 'describe-key
-    "hK" 'describe-keymap
-    "hp" 'describe-package
-    "ht" 'load-theme
-    "hv" 'describe-variable
+    "he" '(view-echo-area-messages :wk "messages buffer")
+    "hf" '(describe-function :wk "function")
+    "hF" '(describe-face :wk "face")
+    "hl" '(view-lossage :wk "lossage")
+    "hL" '(find-library :wk "library")
+    "hm" '(describe-mode :wk "mode")
+    "hk" '(describe-key :wk "keybind")
+    "hK" '(describe-keymap :wk "keymap")
+    "hp" '(describe-package :wk "package")
+    "ht" '(consult-theme :wk "load theme")
+    "hv" '(describe-variable :wk "variable")
+
+	"j" '(:ignore t :wk "jump")
+	"jc" '(consult-line :wk "consult")
 
     "o" '(:ignore t :wk "open")
+
+	"t" '(:ignore t :wk "toggle")
+	"tl" '(display-line-numbers-mode :wk "line numbers")
 
     "u" '(universal-argument :wk "universal")
 
     "w" '(:ignore t :which-key "window")
-    "wl"  'windmove-right
-    "wh"  'windmove-left
-    "wk"  'windmove-up
-    "wj"  'windmove-down
-    "wr"  'winner-redo
-    "wc"  'delete-window
-    "w="  'balance-windows-area
-    "wD"  'kill-buffer-and-window
-    "wu"  'winner-undo
-    "wr"  'winner-redo
+    "wl"  '(windmove-right :wk "move right")
+    "wh"  '(windmove-left :wk "move left")
+    "wk"  '(windmove-up :wk "move up")
+    "wj"  '(windmove-down :wk "move down")
+    "wc"  '(delete-window :wk "delete")
+    "w="  '(balance-windows-area :wk "equal")
+    "wD"  '(kill-buffer-and-window :wk "kill buffer and window")
+    "wu"  '(winner-undo :wk "undo")
+    "wr"  '(winner-redo :wk "redo")
     "wm"  '(delete-other-windows :wk "maximize")))
 
 (use-package evil
-  :demand
   :general
   (nto/leader-keys
-    "wv" 'evil-window-vsplit
-    "ws" 'evil-window-split)
+    "wv" '(evil-window-vsplit :wk "split v")
+    "ws" '(evil-window-split :wk "split o"))
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
@@ -95,8 +102,8 @@
   (setq evil-split-window-below t)
   (setq evil-vsplit-window-right t)
   (setq evil-auto-indent nil)
-  :config
   (evil-mode 1)
+  :config
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (define-key evil-insert-state-map (kbd "C-n") 'next-line)
   (define-key evil-insert-state-map (kbd "C-p") 'previous-line)

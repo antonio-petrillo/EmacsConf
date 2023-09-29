@@ -10,5 +10,4 @@
 (require 'init-keys)
 
 (provide 'init-stage1)
-
 ;;; init-stage1.el ends here

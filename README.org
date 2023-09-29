@@ -7,6 +7,7 @@ My vanilla emacs config with support for multiple platforms.
 + [X] powershell for windows
 + [X] browse-url for gui version
 + [X] yasnippets
++ [ ] Display the possible action for ace-window
 * Docker 
 Add a docker based config with all the deps, see LT123.
 * [%] Modules to create

@@ -48,14 +48,16 @@
           (consult-yank-pop indexed)
           (consult-flycheck)
           (consult-lsp-diagnostics)))
+  :custom
+  (vertico-cycle t)
   :config
-  (vertico-mode))
+  (vertico-mode 1))
 
 (use-package orderless
   :init
-  (setq completion-styles '(orderless)
+  (setq completion-styles '(orderless basic)
         completion-category-defaults nil
-        completion-category-overrides '((file (styles partial-completion)))))
+        completion-category-overrides '((file (styles . (partial-completion))))))
 
 (use-package company
   :diminish company-mode
@@ -68,7 +70,7 @@
 (use-package yasnippet
   :diminish yas-minor-mode
   :config
-  (setq yas-snippet-dirs (concat user-emacs-directory "snippets"))
+  (setq yas-snippet-dirs `(,(concat user-emacs-directory "snippets")))
   (yas-global-mode 1))
 
 (provide 'init-completion)

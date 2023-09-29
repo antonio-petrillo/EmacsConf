@@ -66,7 +66,7 @@
   :diminish which-key-mode
   :general
   (nto/leader-keys
-    "?" 'which-key-show-top-level)
+    "?" '(which-key-show-top-level :wk "help"))
   :init
   (setq which-key-separator " ")
   (setq which-key-prefix-prefix "+")

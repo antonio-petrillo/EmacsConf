@@ -26,6 +26,19 @@
 
 (use-package diminish)
 
+(use-package consult
+  :bind
+  (("M-y" . consult-yank-pop)))
+
+(use-package auto-package-update
+  :custom
+  (auto-package-update-interval 7)
+  (auto-package-update-prompt-before-update t)
+  (auto-package-update-hide-results t)
+  :config
+  (auto-package-update-maybe)
+  (auto-package-update-at-time "08:00"))
+
 (use-package emacs
   :init
   (setq inhibit-startup-screen t
