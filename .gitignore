@@ -13,3 +13,4 @@
 /transient/
 /server/
 .lsp*
+/eln-cache/*
