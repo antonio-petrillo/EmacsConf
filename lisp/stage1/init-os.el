@@ -1,22 +1,22 @@
 ;;; init-os.el --- Description -*- lexical-binding: t; -*-
 
 (defmacro with-windows (&rest body)
-  (declare (indent 1) (debut t))
+  (declare (indent 1))
   (list 'if `(eq system-type 'windows-nt)
 		(cons 'progn body)))
 
 (defmacro with-linux (&rest body)
-  (declare (indent 1) (debut t))
+  (declare (indent 1))
   (list 'if `(eq system-type 'gnu/linux)
 		(cons 'progn body)))
 
 (defmacro with-mac-os (&rest body)
-  (declare (indent 1) (debut t))
+  (declare (indent 1))
   (list 'if `(eq system-type 'darwin)
 		(cons 'progn body)))
 
 (defmacro without-windows (&rest body)
-  (declare (indent 1) (debut t))
+  (declare (indent 1))
   (list 'if `(nto/neq system-type 'windows-nt)
 		(cons 'progn body)))
 
