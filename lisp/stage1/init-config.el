@@ -4,6 +4,7 @@
   (setq user-full-name "Antonio Petrillo"
         user-mail-address "antonio.petrillo4@unina.it"
 		default-theme 'anti-zenburn
+		org-directory "~/Documents/Org"
 		selected-theme default-theme
 		preferred-theme (nth 0 '(light dark))
 		machine (nth 0 '(laptop pc rpi termux docker))
