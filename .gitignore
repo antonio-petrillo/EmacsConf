@@ -14,3 +14,6 @@
 /server/
 .lsp*
 /eln-cache/*
+bookmarks
+.org*
+/transient/*

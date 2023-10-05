@@ -8,6 +8,7 @@
 (require 'init-os)
 (require 'init-graphical-environment)
 (require 'init-keys)
+(require 'init-org)
 
 (provide 'init-stage1)
 ;;; init-stage1.el ends here

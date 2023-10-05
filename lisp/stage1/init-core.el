@@ -24,6 +24,8 @@
 (setq comp-deferred-compilation-black-list nil)
 (setq use-package-compute-statistics t)
 
+(straight-use-package 'org)
+
 (use-package diminish)
 
 (use-package consult

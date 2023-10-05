@@ -7,7 +7,7 @@
 (require 'init-app)
 (require 'init-searches)
 (require 'init-workspaces)
-(require 'init-note)
+(require 'init-notes)
 
 (provide 'init-stage2)
 ;;; init-stage2.el ends here
