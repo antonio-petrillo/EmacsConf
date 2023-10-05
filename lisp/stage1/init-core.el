@@ -26,6 +26,9 @@
 
 (straight-use-package 'org)
 
+(use-package async
+  :config (setq async-bytecomp-package-mode 1))
+
 (use-package diminish)
 
 (use-package consult
