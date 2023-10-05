@@ -20,7 +20,7 @@
                                 vertico-directory
                                 vertico-multiform
                                 vertico-unobtrusive))
-  :demand
+  :demand t
   :hook
   ((minibuffer-setup . vertico-repeat-save)
    (rfn-eshadow-update-overlay . vertico-directory-tidy))

@@ -4,6 +4,27 @@
 
 ;; (use-package org-cite)
 
+
+(defun nto/org-roam-node-has-any-tags-p (node tags)
+  "Predicate that return `t' if node has at least one of `tags', `nil' otherwise"
+  (seq-intersection (org-roam-node-tags node) tags))
+
+(defun nto/org-roam-node-filter-by-tags-any ()
+  "Find and open an Org-roam node if it has any of the specified tags."
+  (interactive)
+  (let ((tags (completing-read-multiple "select tags: " (org-roam-tag-completions))))
+    (org-roam-node-find nil nil (lambda (node) (nto/org-roam-node-has-any-tags-p node tags)))))
+
+(defun nto/org-roam-node-has-all-tags-p (node tags)
+  "Predicate that return `t' if node has all the `tags', `nil' otherwise"
+  (not (seq-difference tags (org-roam-node-tags node))))
+
+(defun nto/org-roam-node-filter-by-tags-all ()
+  "Find and open an Org-roam node if it has all the specified tags."
+  (interactive)
+  (let ((tags (sort (completing-read-multiple "select tags: " (org-roam-tag-completions)) #'string-lessp)))
+    (org-roam-node-find nil nil (lambda (node) (nto/org-roam-node-has-all-tags-p node tags)))))
+
 (use-package org-roam
   :init
   (setq org-roam-v2-ack t
@@ -19,6 +40,9 @@
 	"dta" '(org-roam-tag-add :wk "add")
 	"dtr" '(org-roam-tag-remove :wk "remove")
 	"dr" '(:ignore t :wk "refs")
+	"d/" '(:ignore t :wk "filter by tags")
+	"d/a" '(nto/org-roam-node-filter-by-tags-any :wk "any tags")
+	"d/A" '(nto/org-roam-node-filter-by-tags-all :wk "all tags")
 	"dra" '(org-roam-ref-add :wk "add")
 	"drr" '(org-roam-ref-remove :wk "remove")
 	"di" '(org-roam-node-insert :wk "link")
@@ -27,6 +51,11 @@
   :custom
   (org-roam-directory (expand-file-name "roam" org-directory))
   (org-roam-db-location (expand-file-name "db/org-roam.db" org-directory))
+  (org-roam-capture-templates
+   '(("d" "default" plain
+	  "%?"
+	  :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+	  :unnarrowed t)))
   :config
   (org-roam-setup))
 
@@ -38,6 +67,7 @@
 		org-roam-ui-update-on-save t
 		ort-roam-ui-open-on-start nil))
 
+;; TODO: replace "d" with "n"
 (use-package consult-org-roam
   :after org-roam
   :diminish consult-org-roam-mode

@@ -15,3 +15,8 @@ Create module that should be loaded only when needed, maybe add also a toggle:
 + [ ] Rotate text at point 
 + [ ] org fragtog (latex preview in org mode buffer)
 + [ ] org deft for temporary notes (that later shold go inside roam, like lessons' notes)
+* Org roam
++ [ ] setup templates
++ [ ] setup dailies
++ [ ] setup custom functions
++ [ ] setup org query system
