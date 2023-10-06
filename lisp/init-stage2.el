@@ -10,11 +10,8 @@
 (require 'init-app)
 (require 'init-searches)
 (require 'init-workspaces)
-<<<<<<< HEAD
 (require 'init-projects)
-=======
 (require 'init-notes)
->>>>>>> origin/master
 
 (provide 'init-stage2)
 ;;; init-stage2.el ends here
