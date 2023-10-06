@@ -52,8 +52,8 @@
 
     "f"  '(:ignore t :which-key "file")
     "ff" '(find-file :wk "find")
-    "fg" '(consult-ripgrep :wk "grep")
-    "fF" '(consult-fd :wk "grep")
+    "fg" '(consult-ripgrep :wk "ripgrep")
+    "fF" '(consult-fd :wk "fd find")
     "."  '(find-file :wk "find")
     "fs" '(save-buffer :wk "save")
     "fr" '(consult-recent-file :wk "recent")

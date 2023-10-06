@@ -13,5 +13,12 @@
 /transient/
 /server/
 .lsp*
+<<<<<<< HEAD
 /bookmarks
 /.org-id-locations
+=======
+/eln-cache/*
+bookmarks
+.org*
+/transient/*
+>>>>>>> origin/master

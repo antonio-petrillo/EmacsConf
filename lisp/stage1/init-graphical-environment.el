@@ -1,13 +1,13 @@
 ;;; init-graphical-environment.el --- Description -*- lexical-binding: t; -*-
 
 (defmacro with-window-system (&rest body)
-  (declare (indent 1) (debut t))
+  (declare (indent 1))
   (list 'if 'window-system
 		(cons 'progn body)))
 
 ;; TO-FIX: without a window system the value is not t
 (defmacro without-window-system (&rest body)
-  (declare (indent 1) (debut t))
+  (declare (indent 1))
   (list 'if (nto/neq 'window-system t)
 		(cons 'progn body)))
 

@@ -24,6 +24,11 @@
 (setq comp-deferred-compilation-black-list nil)
 (setq use-package-compute-statistics t)
 
+(straight-use-package 'org)
+
+(use-package async
+  :config (setq async-bytecomp-package-mode 1))
+
 (use-package diminish)
 
 (use-package consult

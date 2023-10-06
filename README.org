@@ -1,2 +1,25 @@
 * Config
 My vanilla emacs config with support for multiple platforms.
+<<<<<<< HEAD
+=======
+* Packages to add
++ [ ] Forge
++ [ ] Eshell aliases and goodies
++ [ ] Display the possible action for ace-window
+* Docker or Podman
+Add a docker based config with all the deps, see LT123.
+*  Modules to create
+Create module that should be loaded only when needed, maybe add also a toggle:
++ [ ] LSP, DAP
++ [ ] Drop frame
++ [ ] Org Mode
++ [ ] Abbrevs files + function to store abbrevs on the fly
++ [ ] Rotate text at point 
++ [ ] org fragtog (latex preview in org mode buffer)
++ [ ] org deft for temporary notes (that later shold go inside roam, like lessons' notes)
+* Org roam
++ [ ] setup templates
++ [ ] setup dailies
++ [ ] setup custom functions
++ [ ] setup org query system
+>>>>>>> origin/master
