@@ -30,7 +30,7 @@
   (general-create-definer nto/local-leader-keys
     :states '(normal visual)
     :keymaps 'override
-    :prefix "m"
+    :prefix ","
     :global-prefix "C-,")
 
 

@@ -13,3 +13,5 @@
 /transient/
 /server/
 .lsp*
+/bookmarks
+/.org-id-locations

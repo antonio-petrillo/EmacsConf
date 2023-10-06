@@ -113,6 +113,7 @@
 	(define-key vterm-mode-map [return] #'vterm-send-return)
 	:general
 	(nto/local-leader-keys
+	  :keymaps 'vterm-mode-map
 	  "c" '(multi-vterm :wk "new term")
 	  "n" '(multi-vterm-next :wk "next term")
 	  "p" '(multi-vterm-prev :wk "prev term")
