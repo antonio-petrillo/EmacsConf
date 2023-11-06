@@ -60,16 +60,6 @@
   (org-roam-directory (expand-file-name "roam" org-directory))
   (org-roam-db-location (expand-file-name "db/org-roam.db" org-directory))
   (org-roam-dailies-directory "daily/")
-  (org-roam-dailies-capture-templates
-   '(("d" "default" entry
-      "* %?"
-      :target (file+head "%<%d-%m-%Y>.org"
-                         "#+title: %<%Y-%m-%d>\n"))))
-  (org-roam-capture-templates
-   '(("d" "default" plain
-      "%?"
-      :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-      :unnarrowed t)))
   :config
   (org-roam-setup))
 
@@ -104,11 +94,11 @@
         deft-extensions '("org" "txt" "tex" "md")
         deft-recursive t)
   (nto/leader-keys
-   "dd" '(:ignore t :wk "deft")
-   "ddf" '(deft :wk "deft ui")
-   "ddn" '(deft-new-file-named :wk "new")
-   "dds" '(deft-find-file :wk "search")
-   "ddd" '(deft-delete-file :wk "delete")))
+   "dT" '(:ignore t :wk "temp (deft)")
+   "dTf" '(deft :wk "deft ui")
+   "dTn" '(deft-new-file-named :wk "new")
+   "dTs" '(deft-find-file :wk "search")
+   "dTd" '(deft-delete-file :wk "delete")))
 
 (provide 'init-notes)
 ;;; init-notes.el ends here

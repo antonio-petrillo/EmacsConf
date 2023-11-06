@@ -29,7 +29,7 @@
   (nto/leader-keys
     "fd" '(dired-jump :wk "find file"))
   :config
-  (evil-define-key 'normal dired-mode-map
+  (evil-define-key '(normal insert) dired-mode-map
     "h" 'dired-up-directory
     "l" 'dired-find-file
     "<return>" 'dired-find-file
