@@ -3,6 +3,8 @@
 
 (require 'init-data)
 (require 'init-programming)
+(require 'init-java)
+(require 'init-zig)
 
 (provide 'init-stage3)
 
