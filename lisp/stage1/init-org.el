@@ -13,8 +13,14 @@
 
 (setq org-agenda-files (list inbox someday agenda projects))
 
+(defun nto/gtd-jump ()
+  "Jump to the gtd directory from anywhere"
+  (interactive)
+  (find-file (concat org-directory "/agenda")))
+
 (define-key global-map (kbd "C-c c") 'org-capture)
 (define-key global-map (kbd "C-c a") 'org-agenda)
+(define-key global-map (kbd "C-c j") #'nto/gtd-jump)
 
 (setq org-capture-templates
 	  `(("i" "Inbox" entry  (file ,inbox)
@@ -103,6 +109,17 @@
 				((org-agenda-overriding-header "Cancelled")
 				 (org-agenda-files org-agenda-files)))
 		  ))))
+
+(defun nto/gtd-jump ()
+  "Jump to the gtd directory from anywhere"
+  (interactive)
+  (find-file (concat org-directory "/agenda")))
+
+(nto/leader-keys
+  "A"  '(:ignore t :wk "Agenda")
+  "Ac" '(org-capture :wk "capture")
+  "Aa" '(org-agenda :wk "agenda")
+  "Aj" '(nto/gtd-jump :wk "gtd jump"))
 
 ;; integrate with org roam dailies
 
