@@ -22,3 +22,6 @@ bookmarks
 .org*
 /transient/*
 >>>>>>> origin/master
+/.DS_Store
+/projectile-bookmarks.eld
+/strokes

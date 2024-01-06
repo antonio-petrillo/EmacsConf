@@ -1,0 +1,1759 @@
+#+title: emacs configuration
+
+* Yet another rewrite of my config
+Each year I take a day or two to rewrite my vanilla *emacs* config from scratch.
+Every time I do so it become more polished and performant, it is also a way to discover new amazing packages, so this is my *2024* emacs conf.
+It is clear that it mimics [[https:github.com/doomemacs/doomemacs][Doom Emacs]] as I'm an happy doom user, but I also like to use a config in which I know what's inside and how it configured.
+I also take a lot of inspiration from:
++ [[https://protesilaos.com/emacs/dotemacs][Protesilaos]] 
++ [[https://karthinks.com/software/fifteen-ways-to-use-embark/][Karthinks]]
++ [[https://systemcrafters.net/][System Crafters]]
++ [[https:github.com/doomemacs/doomemacs][Doom Emacs]]
++ [[https:emacsredux.com][Emacs Redux]]
++ [[https://github.com/bbatsov/prelude/tree/master][Prelude Emacs]]
+
+* Early Init
+The *early init* is based on the one provided by [[https://protesilaos.com/emacs/dotemacs][Protesilaos]].
+** Basic configuration
+First thing first, here are some basic configuration, like /disable/ startup screen or set short answer.
+#+begin_src emacs-lisp :tangle early-init.el
+(setq frame-resize-pixelwise t
+      frame-inhibit-implied-resize t
+      frame-title-format '("%b")
+      ring-bell-function 'ignore
+      use-dialog-box t
+      use-file-dialog nil
+      use-short-answers t
+      package-enable-at-startup nil ;; for straight.el
+      custom-file (make-temp-file "emacs-custom-") ;; avoid custom file
+      inhibit-startup-screen t
+      inhibit-splash-screen t
+      inhibit-startup-buffer-menu t)
+
+(menu-bar-mode 1)
+(scroll-bar-mode 1)
+(tool-bar-mode -1)
+
+(fset 'yes-or-no-p 'y-or-n-p)
+#+end_src
+
+** Garbage collector hack
+The most important part to know are the /hack/ made to improve the performance at startup.
+As [[https://protesilaos.com/emacs/dotemacs][Protesilaos]] explains on the website, set the *garbage collector threshold*, for the whole emacs instance life, to the highest possible it's a bad idea, although it improve the startup on the long run the performance worsen.
+The /hack/ consist in setting the *threshold* to the highest value at startup and after that restore to a more sensible value.
+#+begin_src emacs-lisp :tangle early-init.el
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.5)
+
+(defvar nto/file-name-handler-alist file-name-handler-alist)
+
+(defvar nto/vc-handled-backends vc-handled-backends)
+
+(setq file-name-handler-alist nil
+      vc-handled-backends nil)
+
+(add-hook 'emacs-startup-hook
+	  (lambda ()
+	    (setq gc-cons-threshold (* 1024 1024 20)
+		  gc-cons-percentage 0.2
+		  file-name-handler-alist nto/file-name-handler-alist
+		  vc-handled-backends nto/vc-handled-backends)))
+#+end_src
+
+** Whitescreen flash on startup
+Here another nice /hack/ to avoid the initial whitescreen, before my selected theme is loaded in laters steps, on opening emacs.
+#+begin_src emacs-lisp :tangle early-init.el
+
+(defun nto/avoid-initial-flash-of-light ()
+  (set-face-attribute 'default nil :background "#000000" :foreground "#ffffff")
+  (set-face-attribute 'mode-line nil :background "#000000" :foreground "#ffffff" :box 'unspecified))
+
+(nto/avoid-initial-flash-of-light)
+#+end_src
+
+** Setting frame parameters
+Set *initial* & *default* frame parameters, the first is obviously for the first frame, the latter is used on when new frames are created, i.e. on most of the ~C-x 5~ commands.
+#+begin_src emacs-lisp :tangle early-init.el
+(defun nto/set-frame-params()
+  (mapc (lambda (target-list)
+		  (add-to-list target-list '(width . (text-pixels . 900)))
+		  (add-to-list target-list '(height . (text-pixels . 600)))
+		  (add-to-list target-list '(scroll-bar-width . 7)))
+		'(default-frame-alist initial-frame-alist)))
+
+(nto/set-frame-params)
+#+end_src
+️ *early-init.el* ends here.
+
+* Init
+The following step is to load the good old ~init.el~, here it is possible to enable or not the various piece of the configuration, every piece can (better say should, since I didn't made any test) be omitted with few exception, every piece can be omitted with few exceptions.
+The ones that are always required are:
++ ~init-core~
++ ~init-evil~
+** Bootstrap Straight.el
+As package manager I prefer to use [[https://github.com/radian-software/straight.el][straight]] as in my (short) experience let me build a truly reproducible config that works on all operating systems that I use.
+The first part here is the bootstrap and the config of straight.
+The bootstrap is the only part that I'm not sure it will work on every machine, once I had to modify the code to install it on /windows 10/, but still is a good guideline.
+#+begin_src emacs-lisp :tangle init.el :mkdirp yes
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name
+        "straight/repos/straight.el/bootstrap.el"
+        (or (bound-and-true-p straight-base-dir)
+            user-emacs-directory)))
+      (bootstrap-version 7))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+(setq straight-use-package-by-default t)
+(setq straight-vc-git-default-clone-depth 1)
+(setq straight-recipes-gnu-elpa-use-mirror t)
+(setq straight-check-for-modifications '(check-on-save find-when-checking))
+(setq straight-check-for-modifications nil)
+(setq use-package-always-defer t)
+#+end_src
+
+** Global variable configuration
+Now a couple of *variable* configuration that will be used in the remaining code.
+#+begin_src emacs-lisp :tangle init.el :mkdirp yes
+(setq make-backup-files nil
+      backup-inhibited nil
+      auto-save-default nil
+	  initial-buffer-choice t
+      create-lockfiles nil)
+
+(when (native-comp-available-p)
+  (setq native-comp-async-report-warnings-errors 'silent
+	native-compile-prune-cache t))
+
+(setq user-full-name "Antonio Petrillo"
+	  user-mail-address "antonio.petrillo4@studenti.unina.it")
+
+(setq custom-safe-themes t)
+(setq default-theme 'modus-vivendi
+      selected-theme 'tron-legacy
+	  selected-font "Source Code Pro")
+
+(setq org-directory "~/Documents/Org")
+#+end_src
+
+** Load modules
+Here the load path is extended to with the /lisp/ directory which contains all the modules that I wrote.
+Each ~require~ load a different module.
+#+begin_src emacs-lisp :tangle init.el :mkdirp yes
+(add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
+
+(require 'init-core)
+(require 'init-evil)
+(require 'init-help)
+(require 'init-buffer)
+(require 'init-editing)
+(require 'init-completion)
+(require 'init-dired)
+(require 'init-ui)
+(require 'init-writing)
+(require 'init-font)
+(require 'init-window)
+(require 'init-workspaces)
+(require 'init-magit)
+(require 'init-project)
+(require 'init-embark)
+(require 'init-term)
+(require 'init-org)
+(require 'init-mouse)
+(require 'init-browser)
+(require 'init-os)
+(require 'init-app)
+#+end_src
+
+* Modules
+** Module ~init-core.el~
+Configuration that, in my opinion, don't belong to *early-init.el* nor *init.el*..
+*** Modify default keybindings
+Here I inserted the /built-in/ configuration that are not required at startup.
+#+begin_src emacs-lisp :tangle "lisp/init-core.el" :mkdirp yes
+(global-unset-key (kbd "C-z"))
+(global-unset-key (kbd "C-j"))
+(global-unset-key (kbd "M-a"))
+(global-unset-key (kbd "C-;"))
+
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+(global-set-key (kbd "C-=") 'text-scale-increase)
+(global-set-key (kbd "C--") 'text-scale-decrease)
+#+end_src
+
+*** Enabling modes
++ /recentf/, completion systems suggests recently opened files
++ /delete-selection/, when past from kill ring don't add the overwritten text to the kill ring
++ /auto-revert/, automatically ~revert-buffer~, only in the focused buffer, if the underlying file on disk change
+#+begin_src emacs-lisp :tangle "lisp/init-core.el" :mkdirp yes
+(global-auto-revert-mode 1)
+(delete-selection-mode 1)
+(recentf-mode t)
+
+(straight-use-package 'org)
+#+end_src
+
+*** Modify behaviour
+Change the behaviour of the modes listed above and other basic settings:
++ /vc-follow-symlinks/, to follow symlinks in *dired* 
++ /confirm-kill-processes/, don't ask to kill buffer (i.e. term buffer) when quitting emacs 
+#+begin_src emacs-lisp :tangle "lisp/init-core.el" :mkdirp yes
+(setq auto-revert-verbose t
+	  vc-follow-symlinks t
+	  confirm-kill-processes nil
+	  load-prefer-newer t
+	  recentf-exclude `(,(expand-file-name "straight/build/" user-emacs-directory)
+						,(expand-file-name "eln-cache/" user-emacs-directory)
+						,(expand-file-name "etc" user-emacs-directory)
+						,(expand-file-name "var" user-emacs-directory)))
+#+end_src
+
+*** Add packages
++ /GCMH/ for a better garbage collector
++ /use-package/ to ensure that it will use the latest version
++ /consult/ made available to all the other modules
+#+begin_src emacs-lisp :tangle "lisp/init-core.el" :mkdirp yes
+(use-package gcmh
+  :demand t
+  :config (gcmh-mode))
+
+(use-package use-package)
+
+(use-package consult
+  :bind
+  (("M-y" . consult-yank-pop)))
+#+end_src
+
+*** End
+Module ~init-core.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-core.el" :mkdirp yes
+(provide 'init-core)
+#+end_src
+
+** Module ~init-evil.el~
+*** Escape advice
+Required to avoid strange behaviour when pressing src_emacs-lisp{(kbd  "<escape>)}
+#+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
+(defadvice keyboard-escape-quit
+	(around keyboard-escape-quit-dont-close-windows activate)
+  (let ((buffer-quit-function (lambda () ())))
+	ad-do-it))
+#+end_src
+
+*** Leader keys setup
+I really like the concept of a leader key to access all the shortcuts, basically it transform all the keybindings in a walk on a [[https://en.wikipedia.org/wiki/Trie][prefix tree]].
+I define two leader:
++ =SPC= for global shortcuts
++ =m= as local leader for specific modes
+#+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
+(use-package general
+  :after evil
+  :init
+  (general-create-definer nto/leader
+	:states '(normal insert visual emacs)
+	:keymaps 'override
+	:prefix "SPC"
+	:global-prefix "C-SPC")
+
+  (general-create-definer nto/local-leader
+	:states '(normal visual)
+	:prefix "m"
+	:global-prefix "C-m")
+
+  (nto/leader "?" '(which-key-show-top-level :wk "?"))
+  (general-evil-setup))
+#+end_src
+
+*** EVIL setup
+I learned first vim bindings and only after I switched to *Emacs* for this reason I preferred to stick with the modal editor approach.
+Even tough for a couple of months I sticked to the *default* bindings and learned (not in deepth) them, and honestly they are not that bad as everybody says, so I mix the twos, doing so I've lost some vim bindings but I don't use them anyway.
+#+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
+(use-package evil
+  :init
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-i-jump nil)
+  (setq evil-want-Y-yank-to-eol t)
+  (setq evil-undo-system 'undo-fu)
+  (setq evil-search-module 'evil-search)
+  (setq evil-split-window-below nil)
+  (setq evil-vsplit-window-right t)
+  (setq evil-auto-indent nil)
+  (evil-mode 1)
+  :config
+  (setq evil-overriding-maps nil)
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+  (define-key evil-insert-state-map (kbd "C-n") 'next-line)
+  (define-key evil-insert-state-map (kbd "C-p") 'previous-line)
+  (define-key evil-insert-state-map (kbd "C-h") 'backward-delete-char)
+  (define-key evil-insert-state-map (kbd "C-d") 'delete-char)
+  (define-key evil-normal-state-map (kbd "C-n") 'next-line)
+  (define-key evil-normal-state-map (kbd "C-p") 'previous-line)
+  (define-key evil-normal-state-map (kbd "C-h") 'backward-delete-char)
+  (define-key evil-normal-state-map (kbd "C-d") 'delete-char)
+  (define-key evil-motion-state-map "0" 'evil-beginning-of-line)
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-initial-state 'dashboard-mode 'normal))
+#+end_src
+
+*** Top level mnemonics
+Here I set a couple of bindings but most important the top level /next key/ for the global leader keybindings.
+#+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
+(use-package emacs
+  :after general
+  :init
+  (nto/leader
+	"SPC" '(execute-extended-command :which-key "M-x but faster")
+	"<escape>" '(keyboard-escape-quit :wk "quit")
+	"g" '(:ignore t :wk "git")
+	"j" '(:ignore t :wk "jump")
+	"jc" '(consult-line :wk "consult line")
+	"l" '(:ignore t :wk "language")
+	"o" '(:ignore t :wk "open")
+	"p" '(:ignore t :wk "project")
+	"r" '(:ignore t :wk "rotate")
+	"s" '(:ignore t :wk "search")
+	"t" '(:ignore t :wk "toggle")
+	"u" '(universal-argument :wk "universal")))
+#+end_src
+
+*** Evil collection
+Evil mode is really great, but set it up correctly in every mode and context is a hustle, so I rely on *evil collection* even tough I don't like some aspect of it (like *magit* configuration).
+#+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
+(use-package evil-collection
+  :after evil
+  :init
+  (setq evil-collection-magit-use-z-for-folds nil)
+  :config
+  (setq evil-want-C-i-jump nil)
+  (evil-collection-init)
+  (evil-collection-unimpaired-mode -1)
+  (global-evil-collection-unimpaired-mode -1))
+#+end_src
+
+*** Evil snipe
+I don't like the default snipe operation so I replaced with *evil-snipe*, note that this package is not related to *evil*, you can use with default bindings. 
+#+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
+(use-package evil-snipe
+  :after evil
+  :config
+  (evil-snipe-mode +1)
+  (setq evil-snipe-scope 'buffer))
+#+end_src
+
+*** Evil escape
+Reach for src_emacs-lisp{(kbd "<escape>")} each time is a bit annoying since it require me to move my hand from homerow, *evil-escape* solve this problem by pressing, in a brief period of time, src_emacs-lisp{(kbd "jk")}.
+#+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
+(use-package evil-escape
+  :after evil
+  :init
+  (evil-escape-mode 1)
+  :config
+  (setq-default evil-escape-delay 0.2)
+  (setq-default evil-escape-key-sequence "jk")
+  (setq-default evil-escape-unordered-key-sequence nil))
+#+end_src
+
+*** End
+Module ~init-evil.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
+(provide 'init-evil)
+#+end_src
+
+** Module ~init-org.el~
+*** Header 
+To use, in a proper way, lambda functions.
+#+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
+;;; init-org.el --- Description -*- lexical-binding: t; -*-
+(require 'org)
+#+end_src
+
+*** Org parameters configuration
+#+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
+(setq org-export-with-toc t
+	  org-export-headline-levels 3
+	  org-refile-use-outline-path 'file
+	  org-outline-path-complete-in-steps nil
+	  org-refile-allow-creating-parent-nodes 'confirm)
+
+(setq org-confirm-babel-evaluate nil
+	  org-src-window-setup 'current-window
+      org-edit-src-content-indentation 0)
+
+(advice-add 'org-refile :after 'org-save-all-org-buffers)
+#+end_src
+
+*** Disable annoying keybindings
+As Protesilaos said in his config, org mode bind to many keys, so many that there are conflict.
+On this regard, now I really appreciate how DoomEmacs tweaks all this little things.
+#+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
+(define-key org-mode-map (kbd "C-'") nil)
+(define-key org-mode-map (kbd "C-,") nil)
+(define-key org-mode-map (kbd "M-,") nil)
+(define-key org-mode-map (kbd "M-;") nil)
+#+end_src
+
+*** Evil integration
+#+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
+(with-eval-after-load 'org-mode
+  (nto/local-leader 'org-mode-map
+	"k" '(outline-up-heading :wk "previous header")
+	"j" '(outline-next-visible-heading :wk "next header")
+    "t" '(org-todo :wk "cycle todo")
+	"c" '(org-ctrl-c-minus :wk "cycle bullets or insert separator")
+    "m" '(:ignore t :wk "move heading")
+    "ml" '(org-meta-left :wk "demote")
+    "mh" '(org-meta-right :wk "promote")
+    "mj" '(org-meta-up :wk "move up")
+    "mk" '(org-meta-down :wk "move down")))
+#+end_src
+
+*** Org modern
+A modern ui for org roam.
+#+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
+(use-package org-modern
+  :after org
+  :init
+  (add-hook 'org-mode-hook #'org-modern-mode))
+#+end_src
+
+*** Org Roam
+Personal Knowledge Management, based on [[https://roamresearch.com/][roam research]].  
+**** My utilities function 
+Mainly used to provide a *denote* like type of search on the knowledge graph.
+#+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
+(defun nto/org-roam-node-has-any-tags-p (node tags)
+  "Predicate that return `t' if node has at least one of `tags', `nil' otherwise"
+  (seq-intersection (org-roam-node-tags node) tags))
+
+(defun nto/org-roam-node-filter-by-tags-any ()
+  "Find and open an Org-roam node if it has any of the specified tags."
+  (interactive)
+  (let ((tags (completing-read-multiple "select tags: " (org-roam-tag-completions))))
+    (org-roam-node-find nil nil (lambda (node) (nto/org-roam-node-has-any-tags-p node tags)))))
+
+(defun nto/org-roam-node-has-all-tags-p (node tags)
+  "Predicate that return `t' if node has all the `tags', `nil' otherwise"
+  (not (seq-difference tags (org-roam-node-tags node))))
+
+(defun nto/org-roam-node-filter-by-tags-all ()
+  "Find and open an Org-roam node if it has all the specified tags."
+  (interactive)
+  (let ((tags (sort (completing-read-multiple "select tags: " (org-roam-tag-completions)) #'string-lessp)))
+    (org-roam-node-find nil nil (lambda (node) (nto/org-roam-node-has-all-tags-p node tags)))))
+#+end_src
+
+**** Configuration
+Use *org roam v2*.
+Add keybinding to interact with it.
+It is loaded only if the *org-directory* is defined.
+#+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
+(use-package org-roam
+  :when (and (boundp 'org-directory) org-directory)
+  :after general
+  :init
+  (setq org-roam-v2-ack t
+		org-roam-completion-everywhere nil)
+  (org-roam-db-autosync-mode)
+  (nto/leader
+	"n" '(:ignore t :wk "notes")
+	"nI" '(org-id-get-create :wk "gen ID")
+	"na" '(:ignore t :wk "alias")
+	"naa" '(org-roam-alias-add :wk "add")
+	"nar" '(org-roam-alias-remove :wk "remove")
+	"nt" '(:ignore t :wk "tag")
+	"nta" '(org-roam-tag-add :wk "add")
+	"ntr" '(org-roam-tag-remove :wk "remove")
+	"nr" '(:ignore t :wk "refs")
+	"ns" '(:ignore t :wk "filter by tags")
+	"nsa" '(nto/org-roam-node-filter-by-tags-any :wk "any tags")
+	"nsA" '(nto/org-roam-node-filter-by-tags-all :wk "all tags")
+	"nd" '(:ignore t :wk "date")
+	"ndt" '(org-roam-dailies-goto-today :wk "today")
+	"ndT" '(org-roam-dailies-goto-tomorrow :wk "tomorrow")
+	"ndy" '(org-roam-dailies-goto-yesterday :wk "yesterday")
+	"ndp" '(org-roam-dailies-goto-previous-note :wk "previous")
+	"ndn" '(org-roam-dailies-goto-next-note :wk "next")
+	"ndc" '(org-roam-dailies-goto-date :wk "calendar")
+	"ndd" '(org-roam-dailies-find-directory :wk "dired")
+	"nra" '(org-roam-ref-add :wk "add")
+	"nrr" '(org-roam-ref-remove :wk "remove")
+	"ni" '(org-roam-node-insert :wk "link")
+	"nb" '(org-roam-buffer-toggle :wk "toggle buffer")
+	"nf" '(org-roam-node-find :wk "new node"))
+  :custom
+  (org-roam-directory (expand-file-name "roam" org-directory))
+  (org-roam-db-location (expand-file-name "db/org-roam.db" org-directory))
+  (org-roam-dailies-directory "daily/")
+  :config
+  (org-roam-setup))
+#+end_src
+
+**** Org roam ui
+One of the main reason, at least for me, to choose *org-roam* over *denote*.
+#+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
+(use-package org-roam-ui
+  :after org-roam
+  :config
+  (setq org-roam-ui-sync-theme t
+		org-roam-ui-follow t
+		org-roam-ui-update-on-save t
+		ort-roam-ui-open-on-start nil))
+#+end_src
+
+**** Org conult integration
+Consult function to visit the PKM.
+#+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
+(use-package consult-org-roam
+  :after org-roam
+  :diminish consult-org-roam-mode
+  :init
+  (require 'consult-org-roam)
+  (consult-org-roam-mode 1)
+  (nto/leader
+	"nc" '(:ignore t :wk "consult")
+	"ncf" '(consult-org-roam-file-find :wk "find")
+	"ncb" '(consult-org-roam-backlinks :wk "backlinks")
+	"ncl" '(consult-org-roam-forward-links :wk "forward links")
+	"ncs" '(consult-org-roam-search :wk "search"))
+  :custom
+  (consult-org-roam-grep-func #'consult-ripgrep)
+  (consult-org-roam-buffer-after-buffers t))
+#+end_src
+
+*** TODO additional configuration
++ write src_emacs-lisp{nto/org-cycle-wrapper} function
+*** End
+Module ~init-org.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
+(provide 'init-org)
+#+end_src
+
+** Module ~init-help.el~
+*** Helpful
+For a better help system.
+#+begin_src emacs-lisp :tangle "lisp/init-help.el" :mkdirp yes
+(use-package helpful
+  :init (setq evil-lookup-func #'helpful-at-point)
+  :bind
+  ([remap describe-function] . helpful-callable)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . helpful-variable)
+  ([remap describe-key] . helpful-key))
+#+end_src
+
+*** Which Key
+This awesome package show all the possible ways to complete the current keybind or keychord, this has a great importance because it acts as a sort of spaced repetition.
+Every time I forget the next key I can see all possible completion and continue from that point, each time that happen I will improve my memory.
+#+begin_src emacs-lisp :tangle "lisp/init-help.el" :mkdirp yes
+(use-package which-key
+  :init
+  (setq which-key-separator " ")
+  (setq which-key-prefix-prefix "+")
+  (setq which-key-show-early-on-C-h t)
+  (setq which-key-idle-delay 0.5)
+  (setq which-key-idle-secondary-delay 0.5)
+  (which-key-mode +1)
+  (which-key-setup-minibuffer))
+#+end_src
+
+*** Leader Help bindings
+#+begin_src emacs-lisp :tangle "lisp/init-help.el" :mkdirp yes
+(use-package emacs
+  :after general
+  :init
+  (nto/leader
+   "h" '(:ignore t :which-key "help")
+   "he" '(view-echo-area-messages :wk "messages buffer")
+   "hf" '(describe-function :wk "function")
+   "hF" '(describe-face :wk "face")
+   "hl" '(view-lossage :wk "lossage")
+   "hL" '(find-library :wk "library")
+   "hm" '(describe-mode :wk "mode")
+   "hk" '(describe-key :wk "keybind")
+   "hK" '(describe-keymap :wk "keymap")
+   "hp" '(describe-package :wk "package")
+   "ht" '(consult-theme :wk "load theme")
+   "hv" '(describe-variable :wk "variable")))
+#+end_src
+
+*** End
+Module ~init-help.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-help.el" :mkdirp yes
+(provide 'init-help)
+#+end_src
+
+** Module ~init-buffer.el~
+*** Dependencies
+I use [[https://github.com/BurntSushi/ripgrep][ripgrep]] instead of *grep* and [[https://github.com/sharkdp/fd][fd]] instead of *find*, because they (claim) to be faster.
+They can be easily swapped for the standard unix version by changing:
++ src_emacs-lisp{consult-ripgrep} with src_emacs-lisp{consult-grep}
++ src_emacs-lisp{consult-fd} with src_emacs-lisp{consult-find}
+
+*** Leader buffer & file bindings
+#+begin_src emacs-lisp :tangle "lisp/init-buffer.el" :mkdirp yes
+(use-package emacs
+  :after general
+  :init
+  (nto/leader
+	"b" '(:ignore t :which-key "buffer")
+	"br"  '(revert-buffer :wk "revert")
+	"bk"  '(kill-current-buffer :wk "kill")
+	"bb"  '(consult-buffer :wk "switch")
+	"bi"  '(ibuffer :wk "ibuffer")
+
+	"f"  '(:ignore t :which-key "file")
+	"ff" '(find-file :wk "find")
+	"fg" '(consult-ripgrep :wk "ripgrep")
+	"fF" '(consult-fd :wk "fd find")
+	"."  '(find-file :wk "find")
+	"fs" '(save-buffer :wk "save")
+	"fr" '(consult-recent-file :wk "recent")))
+#+end_src
+
+*** End
+Module ~init-buffer.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-buffer.el" :mkdirp yes
+(provide 'init-buffer)
+#+end_src
+
+** Module ~init-editing.el~
+All the goodies for text editing and manipulation will be placed in this section.
+*** Subword mode 
+Consider camel case word as multiple word, for example *CamelCase* case will be treated by function, operations and commands as *Camel* and *Case* words as they were separated.
+A nice use case, still using *CamelCase* as example, is when I want to delete only *Case* with a single src_emacs-lisp{(kbd "C-<backspace>").
+A drawback is that, in a few rare case, I cannot treat a word as single object anymore, i.e. if I want to change *CamelCase* to *kebab-case* I cannot use anymore the operator *ciw* (change inner word) while the cursor on the word, I first need to select all the word and then use *ciw*.
+Subword mode is built-in but I like it only in /org/ and /prog/ mode. 
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(add-hook 'prog-mode-hook 'subword-mode)
+(add-hook 'org-mode-hook 'subword-mode)
+#+end_src
+Can be turned on globally with src_emacs-lisp{(global-subword-mode 1)}.
+
+*** Backward Kill Word Hack
+Change the behaviour of the default src_emacs-lisp{backward-kill-word}, the original implementation when invoked on whitespace character at the beginning of a line it delete backward until it reach a word, and everytime result in, imho,  /too much deletion/.
+My version stop at the beginning of the line, if invoked agait it delete just one character, so it goes to end of the previous line.
+The logic behind is the following:
+Take the *current line position* and the *line position* after a src_emacs-lisp{backward-word}, which if called on whitespace goes backward until find a word.
+If the two differ then src_emacs-lisp{backward-kill-word} will delete to much so I delete to the beggining of the line, otherwise call src_emacs-lisp{backward-kill-word}
+The edge case to consider are:
+if the cursor is at the beginning of the line
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(defun nto/backward-kill-word()
+  "Same as `backward-kill-word' but if it is invoked on a white space character
+at the beginning of the line it will stop at it, furthermore if it is invoked
+on the beginning of the line it will go the end of the previous line instead
+of delete the previous word."
+  (interactive)
+  (let ((same? (save-excursion
+				 (let ((orig (line-number-at-pos (point)))
+					   (dest (progn
+							   (backward-word)
+							   (line-number-at-pos (point)))))
+				   (eq orig dest))))
+		(start? (eq (point) (line-beginning-position))))
+	(cond (start? (backward-delete-char 1))
+		  (same? (backward-kill-word 1))
+		  (:else (kill-line 0)))))
+
+(global-set-key (kbd "C-<backspace>") 'nto/backward-kill-word)
+#+end_src
+
+*** Handling parentheses
+Highlight matching parentheses and setting up src_emacs-lisp{electric-pair}, when enabled closing bracket are inserted automatically a closing bracket is inserted automatically
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(show-paren-mode t)
+
+(electric-pair-mode 1)
+(push '(?{ . ?}) electric-pair-pairs)
+#+end_src
+
+*** Setup built-in parameters
+Set type of line numbers and tabs width, also keybind to toggle line numbers.
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(use-package emacs
+  :after general
+  :init
+  (nto/leader
+	"tl" '(display-line-numbers-mode :wk "line numbers"))
+  (setq display-line-numbers-type 'relative)
+  (setq tab-always-indent 'complete)
+  (setq-default indent-tabs-mode t)
+  (setq-default tab-width 4))
+#+end_src
+
+*** Evil Multiedit
+This awesome package let me select multiple occurrence of a text object and modify all them in one pass.
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(use-package evil-multiedit
+  :after evil
+  :init
+  (evil-define-key 'normal 'global
+	(kbd "M-a")   #'evil-multiedit-match-symbol-and-next
+	(kbd "M-A")   #'evil-multiedit-match-symbol-and-prev)
+
+  (evil-define-key 'visual 'global
+	"R"           #'evil-multiedit-match-all
+	(kbd "M-a")   #'evil-multiedit-match-and-next
+	(kbd "M-A")   #'evil-multiedit-match-and-prev)
+
+  (evil-define-key '(visual normal) 'global
+	(kbd "C-M-a") #'evil-multiedit-restore)
+
+  (with-eval-after-load 'evil-mutliedit
+    (evil-define-key 'multiedit 'global
+      (kbd "M-a")   #'evil-multiedit-match-and-next
+      (kbd "M-S-a") #'evil-multiedit-match-and-prev
+      (kbd "RET")   #'evil-multiedit-toggle-or-restrict-region)
+    (evil-define-key '(multiedit multiedit-insert) 'global
+      (kbd "C-n")   #'evil-multiedit-next
+      (kbd "C-p")   #'evil-multiedit-prev)))
+#+end_src
+
+*** Evil Surround
+Used to surround selected region, or word at point, with simple shortcuts.
+A neat example, which is more of a memorandum for me, is the following:
+1. I want to surroung *this*
+2. Place cursor on the text object *this*
+3. Do *ysiw)*
+   1. *y* yank
+   2. *s* surround operator
+   3. *i* inner
+   4. *w* word
+   5. *)* surround with this delimiter 
+4. Done, the result is *(this)*
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(use-package evil-surround
+  :after general
+  :general
+  (:states 'operator
+		   "s" 'evil-surround-edit
+		   "S" 'evil-Surround-edit)
+  (:states 'visual
+		   "S" 'evil-surround-region
+		   "gS" 'evil-Surround-region))
+#+end_src
+
+*** TODO Undo mechanism 
+Evil don't have a proper undo system so I need to provide one, *undo-fu* is just the one I know and I'm good with it.
+Add *undo-tree* configuration.
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(use-package undo-fu
+  :after evil
+  :init
+  (general-define-key
+   :states 'normal
+   "u" 'undo-fu-only-undo
+   "s-z" 'undo-fu-only-undo
+   "\C-r" 'undo-fu-only-redo))
+
+(use-package undo-fu-session
+  :after undo-fu
+  :demand
+  :init
+  (setq undo-fu-session-incompatible-files
+		'("/COMMIT_EDITMSG\\'"
+		  "/git-rebase-todo\\'"))
+  :config
+  (global-undo-fu-session-mode))
+#+end_src
+
+*** String inflection
+This package define a couple of function to cycle on the style of a word, with style I mean that it cycle between /CamelCase/, /kebab-case/, /snake_case/ and so on.
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(use-package string-inflection
+  :after evil
+  :init
+  (nto/local-leader 'prog-mode-map
+	"i" '(string-inflection-all-cycle :wk "inflection (all)")
+	"k" '(string-inflection-kebab-case :wk "inflection (lisp)")
+	"j" '(string-inflection-java-style-cycle :wk "inflection (java)")
+	"_" '(string-inflection-underscore :wk "inflection (c)")
+	"u" '(string-inflection-upcase :wk "inflection (upcase)")))
+#+end_src
+
+*** Enable code folding
+I've tried a couple of packages for this purpose but this is the one that work well for me, furthermore it is built-in.
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(use-package emacs
+  :hook (prog-mode . hs-minor-mode)
+  :init
+  (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+  (evil-define-key 'normal 'global
+	(kbd "za") 'hs-toggle-hiding
+	(kbd "zc") 'hs-hide-block
+	(kbd "zo") 'hs-show-block))
+#+end_src
+
+*** Jump to point with visual enumeration
+In other words *avy-jump*, it is easier to try than to explain.
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(use-package avy
+  :after general
+  :hook (after-init . avy-setup-default)
+  :init (setq avy-style 'pre)
+  (nto/leader
+	"jj" '(avy-goto-char-timer :wk "char")
+	"jl" '(avy-goto-line :wk "line")
+	"jw" '(avy-goto-word :wk "word")))
+#+end_src
+
+*** Jump to matching parentheses
+I often need a way to jump between matching parentheses, and since I don't always work with lisp code I need a function that work in all the languages (altough not powerfull like *paredit*).
+Copied from [[https://www.emacswiki.org/emacs/NavigatingParentheses][here]].
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(defun nto/goto-match-paren (arg)
+  "Go to the matching parenthesis if on parenthesis. Else go to the
+   opening parenthesis one level up."
+  (interactive "p")
+  (cond ((looking-at "\\s\(") (forward-list 1))
+        (t
+         (backward-char 1)
+         (cond ((looking-at "\\s\)")
+                (forward-char 1) (backward-list 1))
+               (t
+                (while (not (looking-at "\\s("))
+                  (backward-char 1)
+                  (cond ((looking-at "\\s\)")
+                         (message "->> )")
+                         (forward-char 1)
+                         (backward-list 1)
+                         (backward-char 1)))))))))
+
+(use-package emacs
+  :after general
+  :init
+  (nto/leader
+	"js" '(nto/goto-match-paren :wk "start of sexp")))
+#+end_src
+
+*** Distraction free editing
+Center text in buffer, hide modeline and just write.
+When toggled on it works only when there is one window.
+#+begin_src emacs-lisp 
+(use-package darkroom
+  :defer t
+  :init
+  (nto/leader
+	"tz" '(darkroom-tentative-mode :wk "focus")))
+#+end_src
+
+*** Rotate text
+Cycle word at point between a list of candidates.
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(use-package rotate-text
+  :after general
+  :config
+  (add-to-list 'rotate-text-words '("len" "length" "size"))
+  (add-to-list 'rotate-text-words '("int" "long"))
+  (add-to-list 'rotate-text-words '("u8" "u16" "u32" "u64" "u128"))
+  (add-to-list 'rotate-text-words '("f16" "f32" "f64" "f128"))
+  (add-to-list 'rotate-text-words '("i8" "i16" "i32" "i64" "i128"))
+  (add-to-list 'rotate-text-words '("float" "double"))
+  (add-to-list 'rotate-text-words '("char" "char*"))
+  (add-to-list 'rotate-text-words '("true" "false"))
+  (add-to-list 'rotate-text-words '("def" "defn" "fn"))
+  (add-to-list 'rotate-text-words '("True" "False"))
+  (add-to-list 'rotate-text-words '("t" "nil"))
+  :init
+  (global-set-key (kbd "M-r") 'rotate-text)
+  (global-set-key (kbd "M-R") 'rotate-text-backward)
+  (nto/leader
+	"rt" '(rotate-text :wk "text")
+	"rT" '(rotate-text-backward :wk "text")))
+#+end_src
+
+*** Auto format code on save
+As usual, there are many packages to accomplish this, personally I like src_emacs-lisp{apheleia}, by the same creator of src_emacs-lisp{straight.el}.
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(use-package apheleia
+  :init
+  (apheleia-global-mode +1))
+#+end_src
+
+**** Side note
+This package provide come with some auto formatter preconfigured, but not for every language.
+I need to provide one, like =cljfmt= for clojure.
+*** End
+Module ~init-editing.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(provide 'init-editing)
+#+end_src
+
+** Module ~init-completion.el~
+Enhance the default emacs completion system.
+*** Completion system
+I've tried almost all emacs completion systems, from helm to ivy, and all have their strength, at the end I've chosen *vertico*.
+Most of this configuration is taken from the [[https://github.com/minad/vertico][documentation]].
+*Vertico mouse* add support for mouse selection in minibuffer completion.
+#+begin_src emacs-lisp :tangle "lisp/init-completion.el" :mkdirp yes
+(use-package vertico
+  :demand t
+  :hook
+  ((minibuffer-setup . vertico-repeat-save)
+   (rfn-eshadow-update-overlay . vertico-directory-tidy))
+  :general
+  (:keymaps 'vertico-map
+            "C-j" #'vertico-next
+            "C-k" #'vertico-previous
+            "<escape>" #'minibuffer-keyboard-quit
+            "M-<backspace>" #'vertico-directory-delete-word)
+  :init
+  (setq vertico-grid-separator "       ")
+  (setq vertico-grid-lookahead 50)
+  (setq vertico-buffer-display-action '(display-buffer-reuse-window))
+  (setq vertico-multiform-categories
+        '((file indexed)
+          (consult-grep buffer)
+          (consult-location)
+          (imenu buffer)
+          (library reverse indexed)
+          (org-roam-node reverse indexed)
+          (t reverse)))
+  (setq vertico-multiform-commands
+        '(("flyspell-correct-*" grid reverse)
+          (org-refile grid reverse indexed)
+          (consult-yank-pop indexed)
+          (consult-flycheck)
+          (consult-lsp-diagnostics)))
+  :custom
+  (vertico-cycle t)
+  :config
+  (vertico-mode 1))
+
+(use-package vertico-mouse
+  :after vertico
+  :straight nil
+  :load-path "straight/repos/vertico/extensions/"
+  :init
+  (vertico-mouse-mode))
+#+end_src
+
+*** Additional information
+As default *vertico* doesn't provide to much information in completion minibuffer, this job is done by *marginalia* which provide information on the current minibuffer action, either file name, commands and variables.
+#+begin_src emacs-lisp :tangle "lisp/init-completion.el" :mkdirp yes
+(use-package marginalia
+  :after vertico
+  :init
+  (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+  (marginalia-mode)
+  (with-eval-after-load 'projectile
+    (add-to-list 'marginalia-command-categories '(projectile-find-file . file))))
+#+end_src
+*** Match completion and ordering
+As for the additional information, *vertico* does nothing, as emacs by itself, to sort the completion or to match them, this is accomplished by *orderless*.
+With this package I can match, in any order, a command by only a few letters, there are many style of completion, I use the basic ones.
+For example, I want to search for src_emacs-lisp{extended-execute-command}, with orderless it can be matched with any of the following combination:
++ ext ex comm
++ xten ut man
++ man exe ded
++ *many more*
+
+#+begin_src emacs-lisp :tangle "lisp/init-completion.el" :mkdirp yes
+(use-package orderless
+  :init
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles . (partial-completion))))))
+#+end_src
+
+*** Completion at point popup 
+A vscode like, popup to select between completion.
+#+begin_src emacs-lisp :tangle "lisp/init-completion.el" :mkdirp yes
+(use-package company
+  :init
+  (add-hook 'after-init-hook 'global-company-mode)
+  :config
+  (define-key company-active-map (kbd "C-j") 'company-select-next)
+  (define-key company-active-map (kbd "C-k") 'company-select-previous))
+#+end_src
+
+*** Snippets
+I use yasnippet to generate and use template, divided by mode.
+#+begin_src emacs-lisp :tangle "lisp/init-completion.el"  :mkdirp yes
+(use-package yasnippet
+  :init
+  (yas-global-mode 1)
+  :config
+  (setq yas-snippet-dirs `(,(concat user-emacs-directory "snippets"))))
+#+end_src
+
+*** End
+Module ~init-completion.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-completion.el" :mkdirp yes
+(provide 'init-completion)
+#+end_src
+
+** Module ~init-dired.el~
+nothing to say, just one of the killer feature of emacs.
+*** Basic setup
+Change the default bindings, evil integration and tweaks some behaviour.
++ src_emacs-lisp{delete-by-moving-to-trash}, on delete move to trash instead of perform a src_bash{rm} on candidate
++ src_emacs-lisp{dired-listing-switches}, src_emacs-lisp{ls} switches to use
++ src_emacs-lisp{dired-dwim-target}, *do what I mean* on target
++ src_emacs-lisp{dired-kill-when-opening-new-dired-buffer}, delete current buffer when entering a new directory
+#+begin_src emacs-lisp :tangle "lisp/init-dired.el" :mkdirp yes
+(use-package dired
+  :straight (:type built-in)
+  :after evil
+  :general
+  (nto/leader
+	"fd" '(dired-jump :wk "find file"))
+  :config
+  (evil-define-key '(normal insert) dired-mode-map
+	"h" 'dired-up-directory
+	"l" 'dired-find-file
+	"m" 'dired-mark
+	"u" 'dired-unmark
+	"t" 'dired-toggle-marks
+	"C" 'dired-do-copy
+	"D" 'dired-do-delete
+	"J" 'dired-goto-file
+	"M" 'dired-do-chmod
+	"O" 'dired-do-chown
+	"R" 'dired-do-rename
+	"T" 'dired-do-touch
+	"Y" 'dired-copy-filename-as-kill
+	"+" 'dired-create-directory
+	"-" 'dired-up-directory
+	(kbd "<return>") 'dired-find-file
+	(kbd "% l") 'dired-downcase
+	(kbd "% u") 'dired-upcase
+	(kbd "; d") 'epa-dired-do-decrypt
+	(kbd "; e") 'epa-dired-do-encrypt)
+  :init
+  (setq delete-by-moving-to-trash t)
+  (setq dired-listing-switches "-lah")
+  (setq dired-dwim-target t)
+  (setf dired-kill-when-opening-new-dired-buffer t))
+#+end_src
+
+*** Hide hidden files
+I like the src_bash{ls -a} switch but often I don't need all that information, I prefer to hide all the dot file and show them only when I need them.
+#+begin_src emacs-lisp :tangle "lisp/init-dired.el" :mkdirp yes
+(use-package dired-hide-dotfiles
+  :after dired
+  :hook (dired-mode . dired-hide-dotfiles-mode)
+  :config
+  (evil-define-key 'normal dired-mode-map
+    "H" 'dired-hide-dotfiles-mode))
+#+end_src
+
+*** Styling
+Just *all-the-icons* integration, I've also tried [[https://github.com/alexluigit/dirvish][dirvish]], but for now it didn't convince me.
+#+begin_src emacs-lisp :tangle "lisp/init-dired.el" :mkdirp yes
+(use-package all-the-icons-dired
+  :when (display-graphic-p)
+  :defer t
+  :hook (dired-mode .all-the-icons-dired-mode))
+#+end_src
+
+*** Trash directory
+With dired is not so obvious how to work with *Trash* folder, luckily the *trashed* package fix that.
+Here there is a good use case for *local leader* keybinding, which work only on *trashed-mode*.
+#+begin_src emacs-lisp :tangle "lisp/init-dired.el" :mkdirp yes
+(use-package trashed
+  :init
+  (nto/local-leader :keymaps 'trashed-mode-map
+	"r" '(trashed-do-restore :wk "restore")
+	"d" '(trashed-do-delete :wk "delete")))
+#+end_src
+
+*** TODO Missing feature [0/4]
++ [ ] Mounted media integration
++ [ ] Image preview
++ [ ] Open in external application (like *mpv*)
++ [ ] *ffmpeg* dwim integration, see [[https://xenodium.com/dwim-shell-command-with-template-prompts/][here]]
+
+*** End
+Module ~init-dired.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-dired.el" :mkdirp yes
+(provide 'init-dired)
+#+end_src
+
+** Module ~init-ui.el~
+*** Highlight cursor
+Highlight cursor when jumping between buffers.
+#+begin_src emacs-lisp :tangle "lisp/init-ui.el" :mkdirp yes
+(use-package pulsar
+  :after consult
+  :init
+  (pulsar-global-mode 1)
+  (add-hook 'consult-after-jump-hook #'pulsar-recenter-top)
+  (add-hook 'consult-after-jump-hook #'pulsar-reveal-entry)
+  (add-hook 'imenu-after-jump-hook #'pulsar-recenter-top)
+  (add-hook 'imenu-after-jump-hook #'pulsar-reveal-entry)
+  :config
+  (setq pulsar-pulse t
+		pulsar-delay 0.055
+		pulsar-iteration 10
+		pulsar-face 'pulsar-magenta
+		pulsar-highlight-face 'pulsar-yellow))
+#+end_src
+*** Hide modeline
+Self explanatory, I also add a keybinding to toggle this option on the fly.
+#+begin_src emacs-lisp :tangle "lisp/init-ui.el" :mkdirp yes
+(use-package hide-mode-line
+  :after general
+  :defer t
+  :init
+  (nto/leader
+	"tm" '(hide-mode-line-mode :wk "modeline")))
+#+end_src
+
+*** TODO Icons support
+Just installed, need configuration.
+#+begin_src emacs-lisp :tangle "lisp/init-ui.el" :mkdirp yes
+(use-package all-the-icons
+  :if (display-graphic-p))
+
+(use-package nerd-icons
+  ;; :custom
+  ;; The Nerd Font you want to use in GUI
+  ;; "Symbols Nerd Font Mono" is the default and is recommended
+  ;; but you can use any other Nerd Font if you want
+  ;; (nerd-icons-font-family "Symbols Nerd Font Mono")
+  )
+#+end_src
+
+*** Built in ui configuration
+Ui settings that are not that important so they can be setted later during the init process.
+#+begin_src emacs-lisp :tangle "lisp/init-ui.el" :mkdirp yes
+(use-package emacs
+  :after general
+  :init
+  (setq hl-line-sticky-flag nil) 
+  (hl-line-mode +1)
+  (nto/leader
+    "tL" '(hl-line-mode :wk "highlight line")
+	"tb" '(toggle-frame-tab-bar :wk "tabs")))
+#+end_src
+
+*** Keycast  
+Display the current key pressed and the corresponding command in tab bar or modeline.
+#+begin_src emacs-lisp :tangle "lisp/init-ui.el" :mkdirp yes
+(use-package keycast
+  :after general
+  :defer t
+  :init
+  (nto/leader
+	"tk" '(keycast-mode-line-mode :wk "keycast (modeline)")
+	"tK" '(keycast-tab-bar-mode :wk "keycast (tab bar)")))
+#+end_src
+
+*** RGB colors utils
+Package related to the colors in ui:
++ *rainbow-mode*, display hexdecimal color inline, i.e. #00ff00 will appear green
++ *rainbow-delimiter*, color matching parentheses with same color to enhance readability
+#+begin_src emacs-lisp :tangle "lisp/init-ui.el" :mkdirp yes
+(use-package rainbow-mode
+  :defer t)  
+
+(use-package rainbow-delimiters
+  :defer t
+  :hook (prog-mode . rainbow-delimiters-mode))
+#+end_src
+
+*** Theming
+**** Installed themes
+#+begin_src emacs-lisp :tangle "lisp/init-ui.el" :mkdirp yes
+(use-package gruber-darker-theme)
+(use-package ef-themes)
+(use-package doom-themes)
+(use-package anti-zenburn-theme)
+(use-package cyberpunk-theme)
+(use-package spacemacs-theme)
+(use-package tron-legacy-theme)
+(use-package nano-theme)
+#+end_src
+
+**** Setting theme on startup
+In *init.el* are defined 2 themes, one called *selected* used to set the theme on startup, and other is called *default* used as a fallback, mainly used on first startup of this config on a new machine.
+I've made a little function to set the theme, if the *selected* is not available it use the *default*.
+Obviously the *default* should always be one the pre installed themes, although there are no checks regarding it. 
+#+begin_src emacs-lisp :tangle "lisp/init-ui.el" :mkdirp yes
+(defun nto/load-theme-or-default(selected default)
+  "If `selected' is available load it, otherwise load `default'"
+  (if (memq selected (custom-available-themes))
+	  (load-theme selected)
+	(load-theme default)))
+
+(nto/load-theme-or-default selected-theme default-theme)
+#+end_src
+
+*** End
+Module ~init-ui.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-ui.el" :mkdirp yes
+(provide 'init-ui)
+#+end_src
+
+** Module ~init-writing.el~ 
+Package more related to writing more than editing
+*** Google translate
+A great package to query google translate, it work pretty well with word at point and selected region.
+#+begin_src emacs-lisp :tangle "lisp/init-writing.el" :mkdirp yes
+(use-package google-translate
+  :init
+  (setq google-translate-translation-directions-alist
+        '(("it" . "en") ("en" . "it")))
+  (setq google-translate-default-source-language "it")
+  (setq google-translate-default-target-language "en")
+  (nto/leader
+	"lp" '(google-translate-at-point :wk "translate (it -> en)")
+	"lP" '(google-translate-at-point-reverse :wk "translate (en -> it)")))
+#+end_src
+*** Powerthesaurus 
+The [[https://www.powerthesaurus.org/it%27s_raining_cats_and_dogs/synonyms][powerthesaurus]] service let you search for synonyms, atonyms and other stuff.
+Thankfully there is a front end for emacs.
+I use it, for now, only in org mode, so I've used the local leader in this case.
+#+begin_src emacs-lisp :tangle "lisp/init-writing.el" :mkdirp yes
+(use-package powerthesaurus
+  :after general
+  :defer t
+  :init
+  (nto/local-leader
+	:keymaps 'org-mode-map
+    "t" '(:ignore t :wk "powerthesaurus")
+	"tt" '(powerthesaurus-lookup-dwim :wk "become")
+	"ts" '(powerthesaurus-lookup-synonyms-dwim :wk "synonyms")
+	"ta" '(powerthesaurus-lookup-antonyms-dwim :wk "antonyms")
+	"tr" '(powerthesaurus-lookup-related-dwim :wk "related")
+	"td" '(powerthesaurus-lookup-definitions-dwim :wk "definitions")
+	"tS" '(powerthesaurus-lookup-Sentence-dwim :wk "sentence")))
+#+end_src
+*** TODO Synstax check
+Actually I don't even know if the are mutually exclusive.
++ Configure ispell
++ Configure flyspell
+*** End
+Module ~init-writing.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-writing.el" :mkdirp yes
+(provide 'init-writing)
+#+end_src
+
+** Module ~init-font.el~
+Section about font configuration.
+*** Set preferred encoding
+#+begin_src emacs-lisp :tangle "lisp/init-font.el" :mkdirp yes
+(set-charset-priority 'unicode)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+
+(setq locale-coding-system 'utf-8
+	  coding-system-for-read 'utf-8
+	  coding-system-for-write 'utf-8
+	  default-process-coding-system '(utf-8-unix . utf-8-unix))
+#+end_src
+
+*** Set font 
+#+begin_src emacs-lisp :tangle "lisp/init-font.el" :mkdirp yes
+(defun nto/set-font-all (selected)
+  "Set `selected' font to all the faces"
+  (when (find-font (font-spec :name selected))
+	(set-face-attribute 'default nil :font selected :height 120)
+	(set-face-attribute 'fixed-pitch nil :font selected :height 120)
+	(set-face-attribute 'variable-pitch nil :font selected :height 120 :weight 'regular)))
+
+(nto/set-font-all selected-font)
+#+end_src
+
+*** End
+Module ~init-font.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-font.el" :mkdirp yes
+(provide 'init-font)
+#+end_src
+
+** Module ~init-window.el~
+Section related to window manipulation and navigation.
+*** Built in commands
+#+begin_src emacs-lisp :tangle "lisp/init-window.el" :mkdirp yes
+(use-package emacs
+  :after general
+  :init
+  (nto/leader
+	"w" '(:ignore t :wk "window")
+	"wv" '(evil-window-vsplit :wk "split V")
+	"ws" '(evil-window-split :wk "split H")
+	"wh"  '(windmove-left :wk "move left")
+	"wj"  '(windmove-down :wk "move down")
+	"wk"  '(windmove-up :wk "move up")
+	"wl"  '(windmove-right :wk "move right")
+	"wH"  '(windmove-swap-states-left :wk "swap left")
+	"wJ"  '(windmove-swap-states-down :wk "swap down")
+	"wK"  '(windmove-swap-states-up :wk "swap up")
+	"wL"  '(windmove-swap-states-right :wk "swap right")
+	"wc"  '(delete-window :wk "delete")
+	"w="  '(balance-windows-area :wk "equal")
+	"wD"  '(kill-buffer-and-window :wk "kill buffer and window")
+	"wm"  '(delete-other-windows :wk "maximize")))
+#+end_src
+
+**** TODO Setup winner undo & redo 
+
+*** Rotate windows and layout
+The *rotate* package let me cycle between different layout which is often convenient, it also exposse some functions to rotate the currently visible buffers.
+#+begin_src emacs-lisp :tangle "lisp/init-window.el" :mkdirp yes
+(use-package rotate
+  :after general
+  :init
+  (setq rotate-functions '(rotate:even-horizontal
+                           rotate:even-vertical
+                           rotate:main-horizontal
+                           rotate:main-vertical
+                           rotate:tiled))
+  (nto/leader
+	"wr" '(rotate-window :wk "window")
+	"wR" '(rotate-layout :wk "layout")
+	"rr" '(rotate-window :wk "window")
+	"rl" '(rotate-layout :wk "layout")))
+#+end_src
+
+*** Golden Ratio
+Open window respecting the golden ratio, a la [[https://github.com/baskerville/bspwm][bspwm]].
+Enlarge the currently focused buffer and shrink the others to respect the ratio, it is not enabled by default.
+#+begin_src emacs-lisp :tangle "lisp/init-window.el" :mkdirp yes
+(use-package golden-ratio
+  :after general
+  :config
+  (setq golden-ratio-adjust-factor 1.0)
+  :init
+  (nto/leader
+	"tg" '(golden-ratio-mode :wk "golden ratio")))
+#+end_src
+
+*** Ace Window
+The *ace-window* package define some function to operate on window based on enumeration, the simplest feature is jumping between them, but it provide a lot more than that.
+To see all the possible action press src_emacs-lisp{(kbd "?")} while there is *ace-window* overlay.
+#+begin_src emacs-lisp :tangle "lisp/init-window.el" :mkdirp yes
+(use-package ace-window
+  :after general
+  :init
+  (setq aw-dispatch-always t)
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (defvar aw-dispatch-alist
+	'((?x aw-delete-window "Delete Window")
+	  (?m aw-swap-window "Swap Windows")
+	  (?M aw-move-window "Move Window")
+	  (?c aw-copy-window "Copy Window")
+	  (?j aw-switch-buffer-in-window "Select Buffer")
+	  (?n aw-flip-window "Flip window")
+	  (?u aw-switch-buffer-other-window "Switch Buffer Other Window")
+          (?e aw-execute-command-other-window "Execute Command Other Window")
+	  (?c aw-split-window-fair "Split Fair Window")
+	  (?v aw-split-window-vert "Split Vert Window")
+	  (?b aw-split-window-horz "Split Horz Window")
+	  (?o delete-other-windows "Delete Other Windows")
+	  (?? aw-show-dispatch-help))
+	"List of actions for `aw-dispatch-default'.")
+  :general
+  (nto/leader
+    "ww" '(ace-window :wk "ace window")))
+#+end_src
+
+*** End
+Module ~init-window.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-window.el" :mkdirp yes
+(provide 'init-window)
+#+end_src
+
+** Module ~init-workspaces.el~
+*** Tab Bar Mode
+Built in mode to handle workspace, also provide a tab ui.
+Doesn't provide a way to isolate related buffer from each other, maybe this can be fixed with [[https://protesilaos.com/emacs/beframe][Beframe]].
+#+begin_src emacs-lisp :tangle "lisp/init-workspaces.el" :mkdirp yes
+(use-package tab-bar
+  :after general
+  :config
+  (setq tab-bar-button-relief 5)
+  (nto/leader
+	"<tab>" '(:ignore t :wk "workspaces")
+	"<tab> <tab>" '(tab-switch :wk "switch")
+	"<tab> n" '(tab-new :wk "new")
+	"<tab> b" '(switch-to-buffer-other-tab :wk "buffer")
+	"<tab> d" '(dired-other-tab :wk "dired")
+	"<tab> f" '(find-file-other-tab :wk "find file")
+	"<tab> c" '(tab-close :wk "close")
+	"<tab> r" '(tab-rename :wk "rename")
+	"<tab> u" '(tab-undo :wk "undo")
+	"<tab> j" '(tab-next :wk "next")
+	"<tab> k" '(tab-previous :wk "prev")))
+#+end_src
+
+*** End
+Module ~init-workspaces.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-workspaces.el" :mkdirp yes
+(provide 'init-workspaces)
+#+end_src
+
+** Module ~init-magit.el~
+*** Install Magit
+#+begin_src emacs-lisp :tangle "lisp/init-magit.el" :mkdirp yes
+(use-package magit
+  :after general
+  :defer t
+  :init
+  (nto/leader
+	"gg" '(magit-status :wk "status")))
+#+end_src
+
+*** Install Forge
+#+begin_src emacs-lisp :tangle "lisp/init-magit.el" :mkdirp yes
+(use-package forge
+  :after magit
+  :defer t)
+#+end_src
+
+*** Install Magit Todos
+#+begin_src emacs-lisp :tangle "lisp/init-magit.el" :mkdirp yes
+(use-package magit-todos
+  :after magit
+  :config
+  (magit-todos-mode 1))
+#+end_src
+
+*** TODO Setup merge tool
+Alternatives:
++ *smerge*
++ *ediff*
+
+*** End
+Module ~init-magit.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-magit.el" :mkdirp yes
+(provide 'init-magit)
+#+end_src
+
+** Module  ~init-project.el~
+*** Setup projectile
+#+begin_src emacs-lisp :tangle "lisp/init-project.el" :mkdirp yes
+(use-package projectile
+  :defer t
+  :init
+  (nto/leader
+	"pf" '(projectile-find-file :wk "find")
+	"pF" '(projectile-find-file-in-known-projects :wk "find all")
+	"pd" '(projectile-dired :wk "dired")
+    "pg" '(projectile-grep :wk "grep")
+    "pr" '(projectile-ripgrep :wk "ripgrep")
+	"p?" '(projectile-find-references :wk "reference")
+    "ph" '(projectile-find-other-file :wk "interface <-> impl")
+	"pp" '(projectile-switch-project :wk "switch")
+    "pt" '(projectile-test-project :wk "test")
+    "pc" '(projectile-compile-project :wk "compile")
+    "p&" '(projectile-run-async-shell-command-in-root :wk "run command"))
+  (projectile-mode +1)
+  :bind-keymap
+  ("C-c p" . projectile-command-map))
+#+end_src
+*** Browse open on github
+Open current file directly on github, while in a github repo.
+#+begin_src emacs-lisp :tangle "lisp/init-project.el" :mkdirp yes
+(use-package github-browse-file
+  :defer t
+  :init
+  (nto/leader
+	"pG" '(github-browse-file :wk "see on Gh")
+	"pB" '(github-browse-file-blame :wk "blame on Gh")))
+#+end_src
+
+*** Highlight diff
+Show, on the fringe, the diff between versions.
+#+begin_src emacs-lisp :tangle "lisp/init-project.el" :mkdirp yes
+(use-package diff-hl
+  :init
+  (global-diff-hl-mode))
+#+end_src
+
+*** Highlight todo
+Highlight todo in project (more properly globally), also define shortcuts to navigate between them.
+#+begin_src emacs-lisp :tangle "lisp/init-project.el" :mkdirp yes
+(use-package hl-todo
+  :after general
+  :init
+  (global-hl-todo-mode 1)
+  (nto/leader
+	"tt" '(:ignore t :wk "todos")
+	"ttt" '(global-hl-todo-mode :wk "toggle")
+	"ttp" '(hl-todo-previous :wk "previous")
+	"ttn" '(hl-todo-next :wk "next")
+	"tto" '(hl-todo-occur :wk "occur")
+	"tti" '(hl-todo-insert :wk "insert")))
+
+(use-package consult-todo
+  :after general
+  :init
+  (nto/leader
+	"ft" '(consult-todo-all :wk "consult todo")))
+#+end_src
+
+*** End
+Module ~init-project.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-project.el" :mkdirp yes
+(provide 'init-project)
+#+end_src
+
+** Module ~init-embark.el~
+Recently I've read [[https://karthinks.com/software/fifteen-ways-to-use-embark/][fifteen ways to use embark]] and it is a game changing, it require a little bit to stick to it but the gain is incredible.
+*** Install embark
+#+begin_src emacs-lisp :tangle "lisp/init-embark.el" :mkdirp yes
+(use-package embark
+  :init
+  (global-set-key (kbd "C-,") #'embark-act)
+  (global-set-key (kbd "M-,") #'embark-dwim)
+  (setq prefix-help-command #'embark-prefix-help-command)
+  (nto/leader
+	"a" '(:ignore t :wk "embark")
+	"aa" '(embark-act :wk "act")
+	"ad" '(embark-dwim :wk "dwim")
+	"ab" '(embark-become :wk "become")
+	"ac" '(embark-collect :wk "collect"))
+  :config
+  (add-to-list 'display-buffer-alist
+			   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+				 nil
+				 (window-parameters (mode-line-format . none)))))
+
+(use-package embark-consult
+  :after '(embark consult)
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
+
+*** Embark extra, ace window action
+Copied from the *karthinks* article.
+#+begin_src emacs-lisp :tangle "lisp/init-embark.el"  :mkdirp yes
+  (with-eval-after-load 'embark
+    (eval-when-compile
+  	(defmacro nto/embark-ace-action (fn)
+  	  `(defun ,(intern (concat "nto/embark-ace-" (symbol-name fn))) ()
+  		 (interactive)
+  		 (with-demoted-errors "%s"
+  		   (require 'ace-window)
+  		   (let ((aw-dispatch-always t))
+  			 (aw-switch-to-window (aw-select nil))
+  			 (call-interactively (symbol-function ',fn)))))))
+
+    ;; RMB: work when there are at least 3 window
+    (define-key embark-file-map (kbd "o") (nto/embark-ace-action find-file))
+    (define-key embark-buffer-map (kbd "o") (nto/embark-ace-action switch-to-buffer))
+    (define-key embark-bookmark-map (kbd "o") (nto/embark-ace-action bookmark-jump)))
+#+end_src
+
+*** Embark extra, split actions
+Also copied from the *karthinks* article.
+#+begin_src emacs-lisp :tangle "lisp/init-embark.el" :mkdirp yes
+  (with-eval-after-load 'embark
+    (eval-when-compile
+  	(defmacro nto/embark-split-action (fn split-type)
+        `(defun ,(intern (concat "nto/embark-"
+  							   (symbol-name fn)
+  							   "-"
+  							   (car (last  (split-string
+  											(symbol-name split-type) "-")))))
+  		   (interactive)
+  		 (funcall #',split-type)
+  		 (call-interactively #',fn))))
+
+    (define-key embark-file-map     (kbd "s") (nto/embark-split-action find-file split-window-below))
+    (define-key embark-buffer-map   (kbd "s") (nto/embark-split-action switch-to-buffer split-window-below))
+    (define-key embark-bookmark-map (kbd "s") (nto/embark-split-action bookmark-jump split-window-below))
+
+    (define-key embark-file-map     (kbd "v") (nto/embark-split-action find-file split-window-right))
+    (define-key embark-buffer-map   (kbd "v") (nto/embark-split-action switch-to-buffer split-window-right))
+    (define-key embark-bookmark-map (kbd "v") (nto/embark-split-action bookmark-jump split-window-right)))
+#+end_src
+
+*** End
+Module ~init-embark.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-embark.el" :mkdirp yes
+(provide 'init-embark)
+#+end_src
+
+** Module ~init-term.el~
+Terminal emulator from within emacs.
+*** Vterm
+Vterm should be installed only if the OS is not windows (10, 11 or whatever) based.
+#+begin_src emacs-lisp :tangle "lisp/init-term.el" :mkdirp yes
+(use-package vterm
+  :after general
+  :when (not (eq system-type 'windows-nt)))
+
+(use-package vterm-toggle
+  :after vterm
+  :when (not (eq system-type 'windows-nt))
+  :init
+  (nto/leader
+	"ot" '(vterm-toggle :wk "vterm")))
+#+end_src
+*** Powershell 
+Emacs integration for windows powershell, see [[https://github.com/jschaf/powershell.el][here]].
+#+begin_src emacs-lisp :tangle "lisp/init-term.el" :mkdirp yes
+(use-package powershell
+  :after general
+  :when (eq system-type 'windows-nt)
+  :straight (powershell :type git
+						:host github
+						:repo "jschaf/powershell.el")
+  :init
+  (nto/leader
+	"ot" '(powershell :wk "powershell(sucks)")))
+#+end_src
+*** Eshell
+Emacs shell configuration.
+#+begin_src emacs-lisp :tangle "lisp/init-term.el" :mkdirp yes
+(use-package eshell
+  :init
+  (setq eshell-scroll-to-bottom-on-input 'all
+		eshell-error-if-no-glob t
+		eshell-hist-ignoredups t
+		eshell-save-history-on-exit t
+		eshell-prefer-lisp-functions nil
+		eshell-destroy-buffer-when-process-dies t))
+
+(use-package eshell-toggle
+  :after general
+  :init
+  (nto/leader
+	"oe" '(eshell-toggle :wk "eshell")))
+#+end_src
+
+**** TODO checkout:
++ [[https://github.com/manateelazycat/aweshell][aweshell]]
++ define custom alias
++ integrate with elisp code
+
+*** End
+Module ~init-term.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-term.el" :mkdirp yes
+(provide 'init-term)
+#+end_src
+
+** Module ~init-mouse.el~
+Sometime use the mouse is not that bad.
+Remember to registry new strokes with src_emacs-lisp{strokes-global-set-stroke}.
+A nice one to set up are:
++ =~= to open dired on home directory
+*** Setup strokes on laptop
+Read about strokes [[https://karthinks.com/software/different-strokes-for-different-folks/][here]].
+**** Utility 
+#+begin_src emacs-lisp :tangle "lisp/init-mouse.el" :mkdirp yes
+(defun nto/dired-home ()
+  "open dired at home"
+  (interactive)
+  (dired "~/"))
+#+end_src
+**** Mouse bindings 
+#+begin_src emacs-lisp :tangle "lisp/init-mouse.el" :mkdirp yes
+(keymap-global-set "C-<down-mouse-1>" 'strokes-do-stroke)
+(keymap-global-set "<down-mouse-3>" 'mouse-buffer-menu)
+#+end_src
+*** Enable mouse support in terminal
+See the [[https://emacsredux.com/blog/2022/06/03/enable-mouse-support-in-terminal-emacs/][this]] article by *bbatsov*.
+#+begin_src emacs-lisp :tangle "lisp/init-mouse.el" :mkdirp yes
+(unless (display-graphic-p)
+  (if (eq system-type 'gnu/linu)
+	  (gpm-mouse-mode 1)
+	(xterm-mouse-mode 1)))
+#+end_src
+
+*** End
+Module ~init-mouse.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-mouse.el" :mkdirp yes
+(provide 'init-mouse)
+#+end_src
+
+** Module ~init-browser.el~
+*** Utilities
+#+begin_src emacs-lisp :tangle "lisp/init-browser.el" :mkdirp yes
+(defmacro nto/build-url (url &rest params)
+  "Used to build and complete urls.
+Just a wrapper for the `format' function."
+  `(format ,url ,@params))
+#+end_src
+
+*** Google search
+This utility will be loaded only if emacs is in a graphical environment.
+#+begin_src emacs-lisp :tangle "lisp/init-browser.el" :mkdirp yes
+(with-eval-after-load 'general
+  (when (display-graphic-p)
+	(defun nto/google-search ()
+	  "perform a goole search with region, or prompt for a search term, in the minibuffer."
+	  (interactive)
+	  (let ((base-url "https://google.com/search?q=%s")
+			(param (if (region-active-p)
+					   (nto/get-string-from-region)
+					 (read-from-minibuffer "Google search: "))))
+		(browse-url (nto/build-url base-url param))))
+
+	(nto/leader
+	  "sg" '(nto/google-search :wk "google"))))
+#+end_src
+
+*** End
+Module ~init-browser.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-browser.el" :mkdirp yes
+(provide 'init-browser)
+#+end_src
+
+** Module ~init-os.el~
+Section for os specific settings.
+*** TODO Windows
+Setup home directory on windows, for now it is hardcoded.
+#+begin_src emacs-lisp :tangle "lisp/init-os.el" :mkdirp yes
+(when (eq system-type 'windows-nt)
+    (setq default-directory "C:/Users/antof/"))
+#+end_src
+
+*** GNU/Linux
+Nothing to see here, for now.
+*** Mac
+Add latex compile path.
+#+begin_src emacs-lisp :tangle "lisp/init-os.el" :mkdirp yes
+  (when (eq system-type 'darwin)
+    (setenv "PATH"
+  		  (concat "/Library/TeX/texbin" ":"
+  				  (getenv "PATH"))))
+#+end_src
+
+*** End
+Module ~init-os.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-os.el" :mkdirp yes
+(provide 'init-os)
+#+end_src
+
+** Module ~init-app.el~
+*** TODO app to add
++ biome
++ irc
++ emms (on linux)
++ pdf, nov.el, pen.el
++ drop-frame
++ gptel
+*** Screenshot
+I seldom use this functionality, nonetheless it is pretty nice when needed.
+I prefer not to bind any key for this functionality.
+#+begin_src emacs-lisp :tangle "lisp/init-app.el" :mkdirp yes
+(use-package screenshot)
+#+end_src
+
+*** Selectric
+The power of emacs with the sound of a typewriter, just perfect.
+#+begin_src emacs-lisp :tangle "lisp/init-app.el" :mkdirp yes
+  (use-package selectric-mode
+    :commands selectric-mode)
+#+end_src
+
+*** End
+Module ~init-app.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-app.el" :mkdirp yes
+(provide 'init-app)
+#+end_src
