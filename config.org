@@ -196,8 +196,6 @@ Here I inserted the /built-in/ configuration that are not required at startup.
 (global-auto-revert-mode 1)
 (delete-selection-mode 1)
 (recentf-mode t)
-
-(straight-use-package 'org)
 #+end_src
 
 *** Modify behaviour
@@ -373,6 +371,8 @@ Module ~init-evil.el~ ends here
 To use, in a proper way, lambda functions.
 #+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
 ;;; init-org.el --- Description -*- lexical-binding: t; -*-
+
+(straight-use-package 'org)
 (require 'org)
 #+end_src
 
@@ -1583,29 +1583,28 @@ Terminal emulator from within emacs.
 *** Vterm
 Vterm should be installed only if the OS is not windows (10, 11 or whatever) based.
 #+begin_src emacs-lisp :tangle "lisp/init-term.el" :mkdirp yes
-(use-package vterm
-  :after general
-  :when (not (eq system-type 'windows-nt)))
+(when (not (eq system-type 'windows-nt))
+  (use-package vterm
+	:after general)
 
-(use-package vterm-toggle
-  :after vterm
-  :when (not (eq system-type 'windows-nt))
-  :init
-  (nto/leader
-	"ot" '(vterm-toggle :wk "vterm")))
+  (use-package vterm-toggle
+	:after vterm
+	:init
+	(nto/leader
+	  "ot" '(vterm-toggle :wk "vterm"))))
 #+end_src
 *** Powershell 
 Emacs integration for windows powershell, see [[https://github.com/jschaf/powershell.el][here]].
 #+begin_src emacs-lisp :tangle "lisp/init-term.el" :mkdirp yes
-(use-package powershell
-  :after general
-  :when (eq system-type 'windows-nt)
-  :straight (powershell :type git
-						:host github
-						:repo "jschaf/powershell.el")
-  :init
-  (nto/leader
-	"ot" '(powershell :wk "powershell(sucks)")))
+(when (eq system-type 'windows-nt)
+  (use-package powershell
+	:after general
+	:straight (powershell :type git
+						  :host github
+						  :repo "jschaf/powershell.el")
+	:init
+	(nto/leader
+	  "ot" '(powershell :wk "powershell(sucks)"))))
 #+end_src
 *** Eshell
 Emacs shell configuration.
@@ -1738,6 +1737,7 @@ Module ~init-os.el~ ends here
 + pdf, nov.el, pen.el
 + drop-frame
 + gptel
+
 *** Screenshot
 I seldom use this functionality, nonetheless it is pretty nice when needed.
 I prefer not to bind any key for this functionality.
