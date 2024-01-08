@@ -1,4 +1,6 @@
 ;;; init-org.el --- Description -*- lexical-binding: t; -*-
+
+(straight-use-package 'org)
 (require 'org)
 
 (setq org-export-with-toc t

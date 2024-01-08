@@ -1,23 +1,22 @@
-(use-package vterm
-  :after general
-  :when (not (eq system-type 'windows-nt)))
+(when (not (eq system-type 'windows-nt))
+  (use-package vterm
+	:after general)
 
-(use-package vterm-toggle
-  :after vterm
-  :when (not (eq system-type 'windows-nt))
-  :init
-  (nto/leader
-	"ot" '(vterm-toggle :wk "vterm")))
+  (use-package vterm-toggle
+	:after vterm
+	:init
+	(nto/leader
+	  "ot" '(vterm-toggle :wk "vterm"))))
 
-(use-package powershell
-  :after general
-  :when (eq system-type 'windows-nt)
-  :straight (powershell :type git
-						:host github
-						:repo "jschaf/powershell.el")
-  :init
-  (nto/leader
-	"ot" '(powershell :wk "powershell(sucks)")))
+(when (eq system-type 'windows-nt)
+  (use-package powershell
+	:after general
+	:straight (powershell :type git
+						  :host github
+						  :repo "jschaf/powershell.el")
+	:init
+	(nto/leader
+	  "ot" '(powershell :wk "powershell(sucks)"))))
 
 (use-package eshell
   :init

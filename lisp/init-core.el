@@ -11,8 +11,6 @@
 (delete-selection-mode 1)
 (recentf-mode t)
 
-(straight-use-package 'org)
-
 (setq auto-revert-verbose t
 	  vc-follow-symlinks t
 	  confirm-kill-processes nil

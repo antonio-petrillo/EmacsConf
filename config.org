@@ -452,9 +452,7 @@ Mainly used to provide a *denote* like type of search on the knowledge graph.
 #+end_src
 
 **** Configuration
-Use *org roam v2*.
-Add keybinding to interact with it.
-It is loaded only if the *org-directory* is defined.
+Use *org roam v2*, and keybinding to interact with it.
 #+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
 (use-package org-roam
   :when (and (boundp 'org-directory) org-directory)
@@ -529,7 +527,7 @@ Consult function to visit the PKM.
   (consult-org-roam-buffer-after-buffers t))
 #+end_src
 
-*** TODO additional configuration
+*** TODO Additional configuration
 + write src_emacs-lisp{nto/org-cycle-wrapper} function
 *** End
 Module ~init-org.el~ ends here
@@ -668,7 +666,7 @@ of delete the previous word."
 #+end_src
 
 *** Handling parentheses
-Highlight matching parentheses and setting up src_emacs-lisp{electric-pair}, when enabled closing bracket are inserted automatically a closing bracket is inserted automatically
+Highlight matching parentheses and setting up src_emacs-lisp{electric-pair}, when enabled closing bracket are inserted automatically.
 #+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
 (show-paren-mode t)
 
@@ -723,12 +721,12 @@ Used to surround selected region, or word at point, with simple shortcuts.
 A neat example, which is more of a memorandum for me, is the following:
 1. I want to surroung *this*
 2. Place cursor on the text object *this*
-3. Do *ysiw)*
-   1. *y* yank
-   2. *s* surround operator
-   3. *i* inner
-   4. *w* word
-   5. *)* surround with this delimiter 
+3. Do =ysiw)=
+   1. =y= yank
+   2. =s= surround operator
+   3. =i= inner
+   4. =w= word
+   5. =)= surround with this delimiter 
 4. Done, the result is *(this)*
 #+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
 (use-package evil-surround
@@ -744,7 +742,6 @@ A neat example, which is more of a memorandum for me, is the following:
 
 *** TODO Undo mechanism 
 Evil don't have a proper undo system so I need to provide one, *undo-fu* is just the one I know and I'm good with it.
-Add *undo-tree* configuration.
 #+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
 (use-package undo-fu
   :after evil
@@ -766,6 +763,7 @@ Add *undo-tree* configuration.
   (global-undo-fu-session-mode))
 #+end_src
 
+**** TODO Add *undo-tree* configuration.
 *** String inflection
 This package define a couple of function to cycle on the style of a word, with style I mean that it cycle between /CamelCase/, /kebab-case/, /snake_case/ and so on.
 #+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
@@ -880,8 +878,8 @@ As usual, there are many packages to accomplish this, personally I like src_emac
 #+end_src
 
 **** Side note
-This package provide come with some auto formatter preconfigured, but not for every language.
-I need to provide one, like =cljfmt= for clojure.
+This package come with a couple of auto-formatters preconfigured, but not for every language.
+I.E. I need to provide one, like =cljfmt= for clojure.
 *** End
 Module ~init-editing.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
