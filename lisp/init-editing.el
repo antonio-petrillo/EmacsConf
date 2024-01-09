@@ -1,6 +1,15 @@
 (add-hook 'prog-mode-hook 'subword-mode)
 (add-hook 'org-mode-hook 'subword-mode)
 
+(setq whitespace-line-column nil
+      whitespace-style
+      '(face indentation tabs tab-mark spaces space-mark newline newline-mark
+        trailing lines-tail)
+      whitespace-display-mappings
+      '((tab-mark ?\t [?› ?\t])
+        (newline-mark ?\n [?¬ ?\n])
+        (space-mark ?\  [?·] [?.])))
+
 (defun nto/backward-kill-word()
   "Same as `backward-kill-word' but if it is invoked on a white space character
 at the beginning of the line it will stop at it, furthermore if it is invoked
@@ -25,6 +34,7 @@ of delete the previous word."
 (electric-pair-mode 1)
 (push '(?{ . ?}) electric-pair-pairs)
 
+(setq-default display-line-numbers-width 3)
 (use-package emacs
   :after general
   :init
@@ -34,6 +44,12 @@ of delete the previous word."
   (setq tab-always-indent 'complete)
   (setq-default indent-tabs-mode t)
   (setq-default tab-width 4))
+
+(use-package ws-butler
+  :init
+  (ws-butler-global-mode 1)
+  :config
+  (setq ws-butler-keep-whitespace-before-point nil))
 
 (use-package evil-multiedit
   :after evil

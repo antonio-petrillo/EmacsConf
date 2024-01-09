@@ -24,7 +24,7 @@
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-u-scroll nil)
   (setq evil-want-C-i-jump nil)
   (setq evil-want-Y-yank-to-eol t)
   (setq evil-undo-system 'undo-fu)
@@ -38,11 +38,9 @@
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (define-key evil-insert-state-map (kbd "C-n") 'next-line)
   (define-key evil-insert-state-map (kbd "C-p") 'previous-line)
-  (define-key evil-insert-state-map (kbd "C-h") 'backward-delete-char)
   (define-key evil-insert-state-map (kbd "C-d") 'delete-char)
   (define-key evil-normal-state-map (kbd "C-n") 'next-line)
   (define-key evil-normal-state-map (kbd "C-p") 'previous-line)
-  (define-key evil-normal-state-map (kbd "C-h") 'backward-delete-char)
   (define-key evil-normal-state-map (kbd "C-d") 'delete-char)
   (define-key evil-motion-state-map "0" 'evil-beginning-of-line)
   (evil-set-initial-state 'messages-buffer-mode 'normal)
@@ -54,6 +52,7 @@
   (nto/leader
 	"SPC" '(execute-extended-command :which-key "M-x but faster")
 	"<escape>" '(keyboard-escape-quit :wk "quit")
+	"A" '(:ignore t :wk "Apps")
 	"g" '(:ignore t :wk "git")
 	"j" '(:ignore t :wk "jump")
 	"jc" '(consult-line :wk "consult line")
