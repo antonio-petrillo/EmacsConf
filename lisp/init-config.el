@@ -3,26 +3,8 @@
 
 (defun nto/create-default-config (conf-path)
   "Create the config file, with template"
-  (with-temp-buffer
-	(insert "(setq user-full-name \"Antonio Petrillo\")\n")
-	(insert "(setq user-mail-address \"antonio.petrillo4@studenti.unina.it\")\n")
-	(insert "\n")
-
-	(insert "(setq default-theme 'modus-vivendi)\n")
-	(insert "(setq selected-theme 'tron-legacy)\n")
-
-	(insert "\n")
-	(insert "(setq selected-font \"Source Code Pro\")\n")
-
-	(insert "\n")
-	(insert "(setq org-directory \"~/Documents/Org\")\n")
-
-	(insert "\n")
-	(insert "(setq nto/cache-dir \"~/.cache/\")\n")
-
-	(insert "\n")
-	(insert "(provide 'config)")
-	(write-file conf-path)))
+  (let ((template (expand-file-name "snippets/config-template.el" user-emacs-directory)))
+	(copy-file template conf-path)))
 
 (defun nto/load-or-create-config-file()
   "If `nto/conf-dir-name' directory don't exist create it.
