@@ -39,7 +39,7 @@ First thing first, here are some basic configuration, like /disable/ startup scr
 
 ** Garbage collector hack
 The most important part to know are the /hack/ made to improve the performance at startup.
-As [[https://protesilaos.com/emacs/dotemacs][Protesilaos]] explains on the website, set the *garbage collector threshold*, for the whole emacs instance life, to the highest possible it's a bad idea, although it improve the startup on the long run the performance worsen.
+As [[https://protesilaos.com/emacs/dotemacs][Protesilaos]] explains in his config, set the *garbage collector threshold* for the whole emacs instance life to the highest possible is a bad idea even though if it improve the startup time, on the long run worsen the performance.
 The /hack/ consist in setting the *threshold* to the highest value at startup and after that restore to a more sensible value.
 #+begin_src emacs-lisp :tangle early-init.el
 (setq gc-cons-threshold most-positive-fixnum
@@ -54,14 +54,14 @@ The /hack/ consist in setting the *threshold* to the highest value at startup an
 
 (add-hook 'emacs-startup-hook
 	  (lambda ()
-	    (setq gc-cons-threshold (* 1024 1024 20)
+	    (setq gc-cons-threshold (* 1024 1024 100) ;; 100 MB 
 		  gc-cons-percentage 0.2
 		  file-name-handler-alist nto/file-name-handler-alist
 		  vc-handled-backends nto/vc-handled-backends)))
 #+end_src
 
 ** Whitescreen flash on startup
-Here another nice /hack/ to avoid the initial whitescreen, before my selected theme is loaded in laters steps, on opening emacs.
+Here another nice /hack/ to avoid the initial flash on opening emacs, also taken from Protesilaos config.
 #+begin_src emacs-lisp :tangle early-init.el
 
 (defun nto/avoid-initial-flash-of-light ()
@@ -86,14 +86,19 @@ Set *initial* & *default* frame parameters, the first is obviously for the first
 ️ *early-init.el* ends here.
 
 * Init
-The following step is to load the good old ~init.el~, here it is possible to enable or not the various piece of the configuration, every piece can (better say should, since I didn't made any test) be omitted with few exception, every piece can be omitted with few exceptions.
+The next step is load the good old ~init.el~, here it is possible to enable, or not, the various piece of the configuration.
+Every piece can (better say should, since I didn't made any test) be omitted with few exception.
 The ones that are always required are:
 + ~init-core~
 + ~init-evil~
 ** Bootstrap Straight.el
-As package manager I prefer to use [[https://github.com/radian-software/straight.el][straight]] as in my (short) experience let me build a truly reproducible config that works on all operating systems that I use.
+As package manager I prefer to use [[https://github.com/radian-software/straight.el][straight]] as, in my (short) experience, let me build a truly reproducible config that works on all operating systems that I use.
 The first part here is the bootstrap and the config of straight.
 The bootstrap is the only part that I'm not sure it will work on every machine, once I had to modify the code to install it on /windows 10/, but still is a good guideline.
+Straight is configured for:
++ integrate with src_emacs-lisp{use-package}
++ 
+
 #+begin_src emacs-lisp :tangle init.el :mkdirp yes
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -189,7 +194,7 @@ Here I inserted the /built-in/ configuration that are not required at startup.
 #+end_src
 
 *** Enabling modes
-+ /recentf/, completion systems suggests recently opened files
++ /recentf/, completion systems suggests recently opened files first
 + /delete-selection/, when past from kill ring don't add the overwritten text to the kill ring
 + /auto-revert/, automatically ~revert-buffer~, only in the focused buffer, if the underlying file on disk change
 #+begin_src emacs-lisp :tangle "lisp/init-core.el" :mkdirp yes
@@ -270,8 +275,8 @@ I define two leader:
 #+end_src
 
 *** EVIL setup
-I learned first vim bindings and only after I switched to *Emacs* for this reason I preferred to stick with the modal editor approach.
-Even tough for a couple of months I sticked to the *default* bindings and learned (not in deepth) them, and honestly they are not that bad as everybody says, so I mix the twos, doing so I've lost some vim bindings but I don't use them anyway.
+I learned first vim and only after switched to *Emacs* for this reason I prefer to stick with the modal editor approach.
+For a couple of months I sticked to the *default* bindings and learned (not in deepth) them, and honestly they are not that bad as everybody says, so I mix the twos, doing so I've lost some vim bindings but I don't use them anyway.
 #+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
 (use-package evil
   :init
@@ -404,7 +409,8 @@ On this regard, now I really appreciate how DoomEmacs tweaks all this little thi
 *** Evil integration
 #+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
 (with-eval-after-load 'org-mode
-  (nto/local-leader 'org-mode-map
+  (nto/local-leader
+	:keymaps 'org-mode-map
 	"k" '(outline-up-heading :wk "previous header")
 	"j" '(outline-next-visible-heading :wk "next header")
     "t" '(org-todo :wk "cycle todo")
