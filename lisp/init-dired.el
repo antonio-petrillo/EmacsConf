@@ -44,6 +44,11 @@
   :defer t
   :hook (dired-mode .all-the-icons-dired-mode))
 
+(use-package diredfl
+  :after dired
+  :init
+  (diredfl-global-mode 1))
+
 (use-package trashed
   :init
   (nto/local-leader :keymaps 'trashed-mode-map

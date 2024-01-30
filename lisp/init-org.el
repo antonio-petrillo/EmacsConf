@@ -20,7 +20,7 @@
 (define-key org-mode-map (kbd "M-,") nil)
 (define-key org-mode-map (kbd "M-;") nil)
 
-(with-eval-after-load 'org-mode
+(with-eval-after-load 'org
   (nto/local-leader
 	:keymaps 'org-mode-map
 	"k" '(outline-up-heading :wk "previous header")

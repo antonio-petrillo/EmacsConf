@@ -203,6 +203,7 @@ Module ~init-config.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-config.el" :mkdirp yes
 (provide 'init-config)
 #+end_src
+
 ** Module ~init-core.el~
 Configuration that, in my opinion, don't belong to *early-init.el* nor *init.el*..
 *** Modify default keybindings
@@ -320,8 +321,10 @@ Even tough for a couple of months I sticked to the *default* bindings and learne
   (setq evil-undo-system 'undo-fu)
   (setq evil-search-module 'evil-search)
   (setq evil-split-window-below nil)
-  (setq evil-vsplit-window-right t)
+  (setq evil-vsplit-window-right nil)
   (setq evil-auto-indent nil)
+  (setq undo-limit (* 80 (* 1024 1024))) ;; 80 Mb see, https://tecosaur.github.io/emacs-config/config.html#better-defaults
+  (setq evil-want-fine-undo t)
   (evil-mode 1)
   :config
   (setq evil-overriding-maps nil)
@@ -406,6 +409,7 @@ Module ~init-evil.el~ ends here
 A cache can be useful in some cases, both to store data expensive to compute or to have a place that I don't care I mess up.
 Usually the OS have already a =.cache= directory (usually =~/.cache=) and in fact some packages that I use already take advantage of it, but I define mine for the ones that don't do it.
 *** Create cache
+Sidenote: =nto/cache-dir= must be defined in =config.el=.
 #+begin_src emacs-lisp :tangle "lisp/init-cache.el" :mkdirp yes
 (defun nto/ensure-cache-exist (cache-path)
   (unless (file-directory-p cache-path)
@@ -468,7 +472,7 @@ On this regard, now I really appreciate how DoomEmacs tweaks all this little thi
 
 *** Evil integration
 #+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
-(with-eval-after-load 'org-mode
+(with-eval-after-load 'org
   (nto/local-leader
 	:keymaps 'org-mode-map
 	"k" '(outline-up-heading :wk "previous header")
@@ -858,7 +862,8 @@ This package define a couple of function to cycle on the style of a word, with s
 (use-package string-inflection
   :after evil
   :init
-  (nto/local-leader 'prog-mode-map
+  (nto/local-leader
+	:keymaps 'prog-mode-map
 	"i" '(string-inflection-all-cycle :wk "inflection (all)")
 	"k" '(string-inflection-kebab-case :wk "inflection (lisp)")
 	"j" '(string-inflection-java-style-cycle :wk "inflection (java)")
@@ -1140,6 +1145,11 @@ Just *all-the-icons* integration, I've also tried [[https://github.com/alexluigi
   :when (display-graphic-p)
   :defer t
   :hook (dired-mode .all-the-icons-dired-mode))
+
+(use-package diredfl
+  :after dired
+  :init
+  (diredfl-global-mode 1))
 #+end_src
 
 *** Trash directory
@@ -1516,7 +1526,20 @@ Module ~init-workspaces.el~ ends here
 Alternatives:
 + *smerge*
 + *ediff*
-
+*** Smerge
+#+begin_src emacs-lisp :tangle "lisp/init-magit.el" :mkdirp yes
+(use-package smerge
+  :straight (:type built-in)
+  :after magit
+  :init
+  (nto/local-leader
+	:keymaps 'smerge-mode-map
+	"j" '(smerge-keep-lower :wk "keep lower")
+	"k" '(smerge-keep-upper :wk "keep upper")
+	"n" '(smerge-next :wk "next")
+	"p" '(smerge-prev :wk "previous")
+	"r" '(smerge-resolve :wk "resolve")))
+#+end_src
 *** End
 Module ~init-magit.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-magit.el" :mkdirp yes

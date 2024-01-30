@@ -30,8 +30,10 @@
   (setq evil-undo-system 'undo-fu)
   (setq evil-search-module 'evil-search)
   (setq evil-split-window-below nil)
-  (setq evil-vsplit-window-right t)
+  (setq evil-vsplit-window-right nil)
   (setq evil-auto-indent nil)
+  (setq undo-limit (* 80 (* 1024 1024))) ;; 80 Mb see, https://tecosaur.github.io/emacs-config/config.html#better-defaults
+  (setq evil-want-fine-undo t)
   (evil-mode 1)
   :config
   (setq evil-overriding-maps nil)

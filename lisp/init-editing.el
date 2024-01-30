@@ -107,7 +107,8 @@ of delete the previous word."
 (use-package string-inflection
   :after evil
   :init
-  (nto/local-leader 'prog-mode-map
+  (nto/local-leader
+	:keymaps 'prog-mode-map
 	"i" '(string-inflection-all-cycle :wk "inflection (all)")
 	"k" '(string-inflection-kebab-case :wk "inflection (lisp)")
 	"j" '(string-inflection-java-style-cycle :wk "inflection (java)")
