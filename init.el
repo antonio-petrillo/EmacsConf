@@ -31,18 +31,11 @@
   (setq native-comp-async-report-warnings-errors 'silent
 	native-compile-prune-cache t))
 
-(setq user-full-name "Antonio Petrillo"
-	  user-mail-address "antonio.petrillo4@studenti.unina.it")
-
 (setq custom-safe-themes t)
-(setq default-theme 'modus-vivendi
-      selected-theme 'tron-legacy
-	  selected-font "Source Code Pro")
-
-(setq org-directory "~/Documents/Org")
 
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
+(require 'init-config)
 (require 'init-core)
 (require 'init-evil)
 (require 'init-help)

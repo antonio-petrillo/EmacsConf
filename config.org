@@ -89,6 +89,7 @@ Set *initial* & *default* frame parameters, the first is obviously for the first
 The next step is load the good old ~init.el~, here it is possible to enable, or not, the various piece of the configuration.
 Every piece can (better say should, since I didn't made any test) be omitted with few exception.
 The ones that are always required are:
++ ~init-config~
 + ~init-core~
 + ~init-evil~
 ** Bootstrap Straight.el
@@ -137,15 +138,7 @@ Now a couple of *variable* configuration that will be used in the remaining code
   (setq native-comp-async-report-warnings-errors 'silent
 	native-compile-prune-cache t))
 
-(setq user-full-name "Antonio Petrillo"
-	  user-mail-address "antonio.petrillo4@studenti.unina.it")
-
 (setq custom-safe-themes t)
-(setq default-theme 'modus-vivendi
-      selected-theme 'tron-legacy
-	  selected-font "Source Code Pro")
-
-(setq org-directory "~/Documents/Org")
 #+end_src
 
 ** Load modules
@@ -154,6 +147,7 @@ Each ~require~ load a different module.
 #+begin_src emacs-lisp :tangle init.el :mkdirp yes
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
+(require 'init-config)
 (require 'init-core)
 (require 'init-evil)
 (require 'init-help)
@@ -178,6 +172,43 @@ Each ~require~ load a different module.
 #+end_src
 
 * Modules
+** Module ~init-config.el~
+Some config has to change based on the machine I'm using, like font, font-size, theme and etcetera.
+A good thing to do is encapsulate all of them in a config file and load from there.
+*** Load external config
+Here a simple, maybe too simple, way to load config which is not in =emacs-user-directory=.
+#+begin_src emacs-lisp :tangle "lisp/init-config.el" :mkdirp yes
+(setq nto/conf-dir-name ".ntomacs.d/")
+(setq nto/conf-name "config.el")
+
+(defun nto/create-default-config (template-src conf-dest)
+  "Create the config file, with template"
+  (let ((template (expand-file-name template-src user-emacs-directory)))
+	(copy-file template conf-dest)))
+
+(defun nto/load-or-create-config-file()
+  "If `nto/conf-dir-name' directory don't exist create it.
+If `nto/conf-name' file don't exist create it.
+Finally add the file to the load path and `require' it"
+  (let* ((parent-user-emacs-directory (file-name-directory
+									   (directory-file-name user-emacs-directory)))
+		 (conf-dir (concat parent-user-emacs-directory nto/conf-dir-name))
+		 (conf-path (concat conf-dir nto/conf-name)))
+	(unless (file-directory-p conf-dir)
+	  (make-directory conf-dir :parents)) ;; create conf dir if not exist
+	(unless (file-exists-p conf-path)
+	  (nto/create-default-config "snippets/config-template.el" conf-path)) ;; create conf file if not exist
+	(add-to-list 'load-path conf-dir) ;; add to load path
+	(require 'config))) ;; load persona config
+
+(nto/load-or-create-config-file)
+#+end_src
+*** End
+Module ~init-config.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-config.el" :mkdirp yes
+(provide 'init-config)
+#+end_src
+
 ** Module ~init-core.el~
 Configuration that, in my opinion, don't belong to *early-init.el* nor *init.el*..
 *** Modify default keybindings
@@ -232,6 +263,13 @@ Change the behaviour of the modes listed above and other basic settings:
 (use-package consult
   :bind
   (("M-y" . consult-yank-pop)))
+
+;; magit fix transient bug, should fix in emacs 30.x
+(use-package magit)
+
+(use-package transient
+  :straight t
+  :defer t)
 #+end_src
 
 *** End
@@ -282,25 +320,25 @@ For a couple of months I sticked to the *default* bindings and learned (not in d
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-u-scroll nil)
   (setq evil-want-C-i-jump nil)
   (setq evil-want-Y-yank-to-eol t)
   (setq evil-undo-system 'undo-fu)
   (setq evil-search-module 'evil-search)
   (setq evil-split-window-below nil)
-  (setq evil-vsplit-window-right t)
+  (setq evil-vsplit-window-right nil)
   (setq evil-auto-indent nil)
+  (setq undo-limit (* 80 (* 1024 1024))) ;; 80 Mb see, https://tecosaur.github.io/emacs-config/config.html#better-defaults
+  (setq evil-want-fine-undo t)
   (evil-mode 1)
   :config
   (setq evil-overriding-maps nil)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (define-key evil-insert-state-map (kbd "C-n") 'next-line)
   (define-key evil-insert-state-map (kbd "C-p") 'previous-line)
-  (define-key evil-insert-state-map (kbd "C-h") 'backward-delete-char)
   (define-key evil-insert-state-map (kbd "C-d") 'delete-char)
   (define-key evil-normal-state-map (kbd "C-n") 'next-line)
   (define-key evil-normal-state-map (kbd "C-p") 'previous-line)
-  (define-key evil-normal-state-map (kbd "C-h") 'backward-delete-char)
   (define-key evil-normal-state-map (kbd "C-d") 'delete-char)
   (define-key evil-motion-state-map "0" 'evil-beginning-of-line)
   (evil-set-initial-state 'messages-buffer-mode 'normal)
@@ -316,6 +354,7 @@ Here I set a couple of bindings but most important the top level /next key/ for 
   (nto/leader
 	"SPC" '(execute-extended-command :which-key "M-x but faster")
 	"<escape>" '(keyboard-escape-quit :wk "quit")
+	"A" '(:ignore t :wk "Apps")
 	"g" '(:ignore t :wk "git")
 	"j" '(:ignore t :wk "jump")
 	"jc" '(consult-line :wk "consult line")
@@ -371,6 +410,36 @@ Module ~init-evil.el~ ends here
 (provide 'init-evil)
 #+end_src
 
+** Module ~init-cache.el~
+A cache can be useful in some cases, both to store data expensive to compute or to have a place that I don't care I mess up.
+Usually the OS have already a =.cache= directory (usually =~/.cache=) and in fact some packages that I use already take advantage of it, but I define mine for the ones that don't do it.
+*** Create cache
+Sidenote: =nto/cache-dir= must be defined in =config.el=.
+#+begin_src emacs-lisp :tangle "lisp/init-cache.el" :mkdirp yes
+(defun nto/ensure-cache-exist (cache-path)
+  (unless (file-directory-p cache-path)
+	(make-directory cache-path :parents)))
+
+(nto/ensure-cache-exist nto/cache-dir)
+#+end_src
+*** Cache helpers
+#+begin_src emacs-lisp :tangle "lisp/init-cache.el" :mkdirp yes
+(defun nto/dired-to-cache ()
+  "Open `nto/cache-dir' in dired"
+  (interactive)
+  (dired nto/cache-dir))
+
+(defun nto/clear-cache ()
+  "Remove all the files in `nto/cache-dir'"
+  (interactive)
+  (delete-directory nto/cache-dir t)
+  (nto/ensure-cache-exist nto/cache-dir))
+#+end_src
+*** End
+Module ~init-cache.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-cache.el" :mkdirp yes
+(provide 'init-cache)
+#+end_src
 ** Module ~init-org.el~
 *** Header 
 To use, in a proper way, lambda functions.
@@ -408,7 +477,7 @@ On this regard, now I really appreciate how DoomEmacs tweaks all this little thi
 
 *** Evil integration
 #+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
-(with-eval-after-load 'org-mode
+(with-eval-after-load 'org
   (nto/local-leader
 	:keymaps 'org-mode-map
 	"k" '(outline-up-heading :wk "previous header")
@@ -641,7 +710,18 @@ Subword mode is built-in but I like it only in /org/ and /prog/ mode.
 (add-hook 'org-mode-hook 'subword-mode)
 #+end_src
 Can be turned on globally with src_emacs-lisp{(global-subword-mode 1)}.
-
+*** Whitespace mode
+Copied from doom emacs, have this mode always on is too confusing, but sometime is good to use, like when I'm editing =makefiles=.
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(setq whitespace-line-column nil
+      whitespace-style
+      '(face indentation tabs tab-mark spaces space-mark newline newline-mark
+        trailing lines-tail)
+      whitespace-display-mappings
+      '((tab-mark ?\t [?� ?\t])
+        (newline-mark ?\n [?� ?\n])
+        (space-mark ?\  [?�] [?.])))
+#+end_src
 *** Backward Kill Word Hack
 Change the behaviour of the default src_emacs-lisp{backward-kill-word}, the original implementation when invoked on whitespace character at the beginning of a line it delete backward until it reach a word, and everytime result in, imho,  /too much deletion/.
 My version stop at the beginning of the line, if invoked agait it delete just one character, so it goes to end of the previous line.
@@ -683,6 +763,7 @@ Highlight matching parentheses and setting up src_emacs-lisp{electric-pair}, whe
 *** Setup built-in parameters
 Set type of line numbers and tabs width, also keybind to toggle line numbers.
 #+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(setq-default display-line-numbers-width 3)
 (use-package emacs
   :after general
   :init
@@ -694,6 +775,16 @@ Set type of line numbers and tabs width, also keybind to toggle line numbers.
   (setq-default tab-width 4))
 #+end_src
 
+*** A butler for whitespace character
+(require 'ws-butler)
+(add-hook 'prog-mode-hook #'ws-butler-mode)
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
+(use-package ws-butler
+  :init
+  (ws-butler-global-mode 1)
+  :config
+  (setq ws-butler-keep-whitespace-before-point nil))
+#+end_src
 *** Evil Multiedit
 This awesome package let me select multiple occurrence of a text object and modify all them in one pass.
 #+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
@@ -776,7 +867,8 @@ This package define a couple of function to cycle on the style of a word, with s
 (use-package string-inflection
   :after evil
   :init
-  (nto/local-leader 'prog-mode-map
+  (nto/local-leader
+	:keymaps 'prog-mode-map
 	"i" '(string-inflection-all-cycle :wk "inflection (all)")
 	"k" '(string-inflection-kebab-case :wk "inflection (lisp)")
 	"j" '(string-inflection-java-style-cycle :wk "inflection (java)")
@@ -1041,7 +1133,7 @@ Change the default bindings, evil integration and tweaks some behaviour.
 #+end_src
 
 *** Hide hidden files
-I like the src_bash{ls -a} switch but often I don't need all that information, I prefer to hide all the dot file and show them only when I need them.
+I like the src_bash{ls -a} switch but often I don't need all that information, I prefer to hide all the dotfiles and show them only when needed.
 #+begin_src emacs-lisp :tangle "lisp/init-dired.el" :mkdirp yes
 (use-package dired-hide-dotfiles
   :after dired
@@ -1058,6 +1150,11 @@ Just *all-the-icons* integration, I've also tried [[https://github.com/alexluigi
   :when (display-graphic-p)
   :defer t
   :hook (dired-mode .all-the-icons-dired-mode))
+
+(use-package diredfl
+  :after dired
+  :init
+  (diredfl-global-mode 1))
 #+end_src
 
 *** Trash directory
@@ -1163,7 +1260,9 @@ Package related to the colors in ui:
 
 (use-package rainbow-delimiters
   :defer t
-  :hook (prog-mode . rainbow-delimiters-mode))
+  :hook (prog-mode . rainbow-delimiters-mode)
+  :config
+  (setq rainbow-delimiters-max-face-count 4)) ;; copied from doom, avoid to many colors and should improve performance
 #+end_src
 
 *** Theming
@@ -1214,6 +1313,7 @@ A great package to query google translate, it work pretty well with word at poin
 	"lp" '(google-translate-at-point :wk "translate (it -> en)")
 	"lP" '(google-translate-at-point-reverse :wk "translate (en -> it)")))
 #+end_src
+
 *** Powerthesaurus 
 The [[https://www.powerthesaurus.org/it%27s_raining_cats_and_dogs/synonyms][powerthesaurus]] service let you search for synonyms, atonyms and other stuff.
 Thankfully there is a front end for emacs.
@@ -1233,10 +1333,12 @@ I use it, for now, only in org mode, so I've used the local leader in this case.
 	"td" '(powerthesaurus-lookup-definitions-dwim :wk "definitions")
 	"tS" '(powerthesaurus-lookup-Sentence-dwim :wk "sentence")))
 #+end_src
+
 *** TODO Synstax check
 Actually I don't even know if the are mutually exclusive.
 + Configure ispell
 + Configure flyspell
+
 *** End
 Module ~init-writing.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-writing.el" :mkdirp yes
@@ -1429,14 +1531,27 @@ Module ~init-workspaces.el~ ends here
 Alternatives:
 + *smerge*
 + *ediff*
-
+*** Smerge
+#+begin_src emacs-lisp :tangle "lisp/init-magit.el" :mkdirp yes
+(use-package smerge
+  :straight (:type built-in)
+  :after magit
+  :init
+  (nto/local-leader
+	:keymaps 'smerge-mode-map
+	"j" '(smerge-keep-lower :wk "keep lower")
+	"k" '(smerge-keep-upper :wk "keep upper")
+	"n" '(smerge-next :wk "next")
+	"p" '(smerge-prev :wk "previous")
+	"r" '(smerge-resolve :wk "resolve")))
+#+end_src
 *** End
 Module ~init-magit.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-magit.el" :mkdirp yes
 (provide 'init-magit)
 #+end_src
 
-** Module  ~init-project.el~
+** Module ~init-project.el~
 *** Setup projectile
 #+begin_src emacs-lisp :tangle "lisp/init-project.el" :mkdirp yes
 (use-package projectile
@@ -1734,12 +1849,13 @@ Module ~init-os.el~ ends here
 #+end_src
 
 ** Module ~init-app.el~
-*** TODO app to add
-+ biome
+*** Apps to add
 + irc
 + emms (on linux)
 + pdf, nov.el, pen.el
 + drop-frame
++ restclient
++ plantuml
 + gptel
 
 *** Screenshot
@@ -1750,10 +1866,17 @@ I prefer not to bind any key for this functionality.
 #+end_src
 
 *** Selectric
-The power of emacs with the sound of a typewriter, just perfect.
+The power of emacs with the sound of a typewriter, simply perfect.
 #+begin_src emacs-lisp :tangle "lisp/init-app.el" :mkdirp yes
-  (use-package selectric-mode
-    :commands selectric-mode)
+(use-package selectric-mode
+  :commands selectric-mode)
+#+end_src
+
+*** Biome
+Location and predefined biomes are in ~config.el~.
+#+begin_src emacs-lisp :tangle "lisp/init-app.el" :mkdirp yes
+(use-package biome
+  :demand t)
 #+end_src
 
 *** End

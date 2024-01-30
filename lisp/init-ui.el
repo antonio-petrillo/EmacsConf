@@ -53,7 +53,9 @@
 
 (use-package rainbow-delimiters
   :defer t
-  :hook (prog-mode . rainbow-delimiters-mode))
+  :hook (prog-mode . rainbow-delimiters-mode)
+  :config
+  (setq rainbow-delimiters-max-face-count 4)) ;; copied from doom, avoid to many colors and should improve performance
 
 (use-package gruber-darker-theme)
 (use-package ef-themes)

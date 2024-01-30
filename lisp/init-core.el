@@ -30,4 +30,11 @@
   :bind
   (("M-y" . consult-yank-pop)))
 
+;; magit fix transient bug, should fix in emacs 30.x
+(use-package magit)
+
+(use-package transient
+  :straight t
+  :defer t)
+
 (provide 'init-core)
