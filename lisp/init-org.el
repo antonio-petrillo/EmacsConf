@@ -100,7 +100,7 @@
 
 (use-package org-roam-ui
   :after org-roam
-  :config
+  :init
   (setq org-roam-ui-sync-theme t
 		org-roam-ui-follow t
 		org-roam-ui-update-on-save t

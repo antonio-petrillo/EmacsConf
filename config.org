@@ -98,7 +98,6 @@ The first part here is the bootstrap and the config of straight.
 The bootstrap is the only part that I'm not sure it will work on every machine, once I had to modify the code to install it on /windows 10/, but still is a good guideline.
 Straight is configured for:
 + integrate with src_emacs-lisp{use-package}
-+ 
 
 #+begin_src emacs-lisp :tangle init.el :mkdirp yes
 (defvar bootstrap-version)
@@ -280,7 +279,7 @@ Module ~init-core.el~ ends here
 
 ** Module ~init-evil.el~
 *** Escape advice
-Required to avoid strange behaviour when pressing src_emacs-lisp{(kbd  "<escape>)}
+Required to avoid strange behaviour when pressing ~(kbd  "<escape>)~
 #+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
 (defadvice keyboard-escape-quit
 	(around keyboard-escape-quit-dont-close-windows activate)
@@ -291,8 +290,8 @@ Required to avoid strange behaviour when pressing src_emacs-lisp{(kbd  "<escape>
 *** Leader keys setup
 I really like the concept of a leader key to access all the shortcuts, basically it transform all the keybindings in a walk on a [[https://en.wikipedia.org/wiki/Trie][prefix tree]].
 I define two leader:
-+ =SPC= for global shortcuts
-+ =m= as local leader for specific modes
++ =SPC= for global shortcuts, =C-SPC= in insert mode
++ =m= as local leader for specific modes, =C-m= in insert mode
 #+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
 (use-package general
   :after evil
@@ -339,6 +338,8 @@ For a couple of months I sticked to the *default* bindings and learned (not in d
   (define-key evil-insert-state-map (kbd "C-d") 'delete-char)
   (define-key evil-normal-state-map (kbd "C-n") 'next-line)
   (define-key evil-normal-state-map (kbd "C-p") 'previous-line)
+  (define-key evil-normal-state-map (kbd "C-f") 'forward-char)
+  (define-key evil-normal-state-map (kbd "C-b") 'backward-char)
   (define-key evil-normal-state-map (kbd "C-d") 'delete-char)
   (define-key evil-motion-state-map "0" 'evil-beginning-of-line)
   (evil-set-initial-state 'messages-buffer-mode 'normal)
@@ -374,9 +375,8 @@ Evil mode is really great, but set it up correctly in every mode and context is 
   :after evil
   :init
   (setq evil-collection-magit-use-z-for-folds nil)
-  :config
-  (setq evil-want-C-i-jump nil)
   (evil-collection-init)
+  :config
   (evil-collection-unimpaired-mode -1)
   (global-evil-collection-unimpaired-mode -1))
 #+end_src
@@ -386,8 +386,32 @@ I don't like the default snipe operation so I replaced with *evil-snipe*, note t
 #+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
 (use-package evil-snipe
   :after evil
-  :config
+  :init
   (evil-snipe-mode +1)
+  (evil-define-key '(normal motion) evil-snipe-local-mode-map
+	"s" 'evil-snipe-s
+	"S" 'evil-snipe-S
+	"f" 'evil-snipe-f
+	"F" 'evil-snipe-F)
+
+  (evil-define-key 'operator evil-snipe-local-mode-map
+	"z" 'evil-snipe-s
+	"Z" 'evil-snipe-S
+	"x" 'evil-snipe-x
+	"X" 'evil-snipe-X)
+
+  (evil-define-key 'motion evil-snipe-override-local-mode-map
+	"f" 'evil-snipe-f
+	"F" 'evil-snipe-F
+	"t" 'evil-snipe-t
+	"T" 'evil-snipe-T)
+
+  (when evil-snipe-override-evil-repeat-keys
+	(evil-define-key 'motion map
+      ";" 'evil-snipe-repeat
+      "," 'evil-snipe-repeat-reverse))
+
+  :config
   (setq evil-snipe-scope 'buffer))
 #+end_src
 
@@ -442,7 +466,6 @@ Module ~init-cache.el~ ends here
 #+end_src
 ** Module ~init-org.el~
 *** Header 
-To use, in a proper way, lambda functions.
 #+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
 ;;; init-org.el --- Description -*- lexical-binding: t; -*-
 
@@ -575,7 +598,7 @@ One of the main reason, at least for me, to choose *org-roam* over *denote*.
 #+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
 (use-package org-roam-ui
   :after org-roam
-  :config
+  :init
   (setq org-roam-ui-sync-theme t
 		org-roam-ui-follow t
 		org-roam-ui-update-on-save t
@@ -666,7 +689,7 @@ Module ~init-help.el~ ends here
 
 ** Module ~init-buffer.el~
 *** Dependencies
-I use [[https://github.com/BurntSushi/ripgrep][ripgrep]] instead of *grep* and [[https://github.com/sharkdp/fd][fd]] instead of *find*, because they (claim) to be faster.
+I use [[https://github.com/BurntSushi/ripgrep][ripgrep]] instead of *grep* and [[https://github.com/sharkdp/fd][fd]] instead of *find*, because they /claim/ to be faster.
 They can be easily swapped for the standard unix version by changing:
 + src_emacs-lisp{consult-ripgrep} with src_emacs-lisp{consult-grep}
 + src_emacs-lisp{consult-fd} with src_emacs-lisp{consult-find}
@@ -815,7 +838,7 @@ This awesome package let me select multiple occurrence of a text object and modi
 
 *** Evil Surround
 Used to surround selected region, or word at point, with simple shortcuts.
-A neat example, which is more of a memorandum for me, is the following:
+A neat example, which is more of a memorandum for future me, is the following:
 1. I want to surroung *this*
 2. Place cursor on the text object *this*
 3. Do =ysiw)=
@@ -934,9 +957,8 @@ Copied from [[https://www.emacswiki.org/emacs/NavigatingParentheses][here]].
 *** Distraction free editing
 Center text in buffer, hide modeline and just write.
 When toggled on it works only when there is one window.
-#+begin_src emacs-lisp 
+#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
 (use-package darkroom
-  :defer t
   :init
   (nto/leader
 	"tz" '(darkroom-tentative-mode :wk "focus")))
@@ -950,14 +972,13 @@ Cycle word at point between a list of candidates.
   :config
   (add-to-list 'rotate-text-words '("len" "length" "size"))
   (add-to-list 'rotate-text-words '("int" "long"))
-  (add-to-list 'rotate-text-words '("u8" "u16" "u32" "u64" "u128"))
-  (add-to-list 'rotate-text-words '("f16" "f32" "f64" "f128"))
-  (add-to-list 'rotate-text-words '("i8" "i16" "i32" "i64" "i128"))
   (add-to-list 'rotate-text-words '("float" "double"))
   (add-to-list 'rotate-text-words '("char" "char*"))
   (add-to-list 'rotate-text-words '("true" "false"))
-  (add-to-list 'rotate-text-words '("def" "defn" "fn"))
+  (add-to-list 'rotate-text-words '("def" "defn" "fn" "defun"))
+  (add-to-list 'rotate-text-words '("fun" "func" "function"))
   (add-to-list 'rotate-text-words '("True" "False"))
+  (add-to-list 'rotate-text-words '("true" "false"))
   (add-to-list 'rotate-text-words '("t" "nil"))
   :init
   (global-set-key (kbd "M-r") 'rotate-text)
@@ -968,7 +989,7 @@ Cycle word at point between a list of candidates.
 #+end_src
 
 *** Auto format code on save
-As usual, there are many packages to accomplish this, personally I like src_emacs-lisp{apheleia}, by the same creator of src_emacs-lisp{straight.el}.
+As usual, there are many packages to accomplish this, personally I like src_emacs-lisp{apheleia}, it's made by the same creator of src_emacs-lisp{straight.el}.
 #+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
 (use-package apheleia
   :init
@@ -1044,6 +1065,7 @@ As default *vertico* doesn't provide to much information in completion minibuffe
   (with-eval-after-load 'projectile
     (add-to-list 'marginalia-command-categories '(projectile-find-file . file))))
 #+end_src
+
 *** Match completion and ordering
 As for the additional information, *vertico* does nothing, as emacs by itself, to sort the completion or to match them, this is accomplished by *orderless*.
 With this package I can match, in any order, a command by only a few letters, there are many style of completion, I use the basic ones.
@@ -1062,7 +1084,7 @@ For example, I want to search for src_emacs-lisp{extended-execute-command}, with
 #+end_src
 
 *** Completion at point popup 
-A vscode like, popup to select between completion.
+A vscode like completion at point.
 #+begin_src emacs-lisp :tangle "lisp/init-completion.el" :mkdirp yes
 (use-package company
   :init
@@ -1092,9 +1114,9 @@ Module ~init-completion.el~ ends here
 nothing to say, just one of the killer feature of emacs.
 *** Basic setup
 Change the default bindings, evil integration and tweaks some behaviour.
-+ src_emacs-lisp{delete-by-moving-to-trash}, on delete move to trash instead of perform a src_bash{rm} on candidate
++ src_emacs-lisp{delete-by-moving-to-trash}, on delete move to trash instead of perform a src_bash{rm} on the selection
 + src_emacs-lisp{dired-listing-switches}, src_emacs-lisp{ls} switches to use
-+ src_emacs-lisp{dired-dwim-target}, *do what I mean* on target
++ src_emacs-lisp{dired-dwim-target}, *do what I mean* on target, i.e. with 2 dired buffer copy from one to another without asking
 + src_emacs-lisp{dired-kill-when-opening-new-dired-buffer}, delete current buffer when entering a new directory
 #+begin_src emacs-lisp :tangle "lisp/init-dired.el" :mkdirp yes
 (use-package dired
@@ -1347,6 +1369,7 @@ Module ~init-writing.el~ ends here
 
 ** Module ~init-font.el~
 Section about font configuration.
+
 *** Set preferred encoding
 #+begin_src emacs-lisp :tangle "lisp/init-font.el" :mkdirp yes
 (set-charset-priority 'unicode)
@@ -1364,7 +1387,7 @@ Section about font configuration.
 *** Set font 
 #+begin_src emacs-lisp :tangle "lisp/init-font.el" :mkdirp yes
 (defun nto/set-font-all (selected)
-  "Set `selected' font to all the faces"
+  "Set `selected' font to all the faces, this will apply only if the `selected' font is found in the system"
   (when (find-font (font-spec :name selected))
 	(set-face-attribute 'default nil :font selected :height 120)
 	(set-face-attribute 'fixed-pitch nil :font selected :height 120)
@@ -1454,7 +1477,7 @@ To see all the possible action press src_emacs-lisp{(kbd "?")} while there is *a
 	  (?j aw-switch-buffer-in-window "Select Buffer")
 	  (?n aw-flip-window "Flip window")
 	  (?u aw-switch-buffer-other-window "Switch Buffer Other Window")
-          (?e aw-execute-command-other-window "Execute Command Other Window")
+      (?e aw-execute-command-other-window "Execute Command Other Window")
 	  (?c aw-split-window-fair "Split Fair Window")
 	  (?v aw-split-window-vert "Split Vert Window")
 	  (?b aw-split-window-horz "Split Horz Window")
@@ -1528,9 +1551,6 @@ Module ~init-workspaces.el~ ends here
 #+end_src
 
 *** TODO Setup merge tool
-Alternatives:
-+ *smerge*
-+ *ediff*
 *** Smerge
 #+begin_src emacs-lisp :tangle "lisp/init-magit.el" :mkdirp yes
 (use-package smerge
@@ -1704,7 +1724,8 @@ Vterm should be installed only if the OS is not windows (10, 11 or whatever) bas
 #+begin_src emacs-lisp :tangle "lisp/init-term.el" :mkdirp yes
 (when (not (eq system-type 'windows-nt))
   (use-package vterm
-	:after general)
+	:after general
+	:demand t)
 
   (use-package vterm-toggle
 	:after vterm
@@ -1723,7 +1744,7 @@ Emacs integration for windows powershell, see [[https://github.com/jschaf/powers
 						  :repo "jschaf/powershell.el")
 	:init
 	(nto/leader
-	  "ot" '(powershell :wk "powershell(sucks)"))))
+	  "ot" '(powershell :wk "powershell"))))
 #+end_src
 *** Eshell
 Emacs shell configuration.
@@ -1836,10 +1857,10 @@ Nothing to see here, for now.
 *** Mac
 Add latex compile path.
 #+begin_src emacs-lisp :tangle "lisp/init-os.el" :mkdirp yes
-  (when (eq system-type 'darwin)
-    (setenv "PATH"
-  		  (concat "/Library/TeX/texbin" ":"
-  				  (getenv "PATH"))))
+(when (eq system-type 'darwin)
+  (setenv "PATH"
+		  (concat "/Library/TeX/texbin" ":"
+				  (getenv "PATH"))))
 #+end_src
 
 *** End
@@ -1870,13 +1891,6 @@ The power of emacs with the sound of a typewriter, simply perfect.
 #+begin_src emacs-lisp :tangle "lisp/init-app.el" :mkdirp yes
 (use-package selectric-mode
   :commands selectric-mode)
-#+end_src
-
-*** Biome
-Location and predefined biomes are in ~config.el~.
-#+begin_src emacs-lisp :tangle "lisp/init-app.el" :mkdirp yes
-(use-package biome
-  :demand t)
 #+end_src
 
 *** End
