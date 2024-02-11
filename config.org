@@ -331,7 +331,20 @@ I define two leader:
 I learned first vim and only after switched to *Emacs* for this reason I prefer to stick with the modal editor approach.
 For a couple of months I sticked to the *default* bindings and learned (not in deepth) them, and honestly they are not that bad as everybody says, so I mix the twos, doing so I've lost some vim bindings but I don't use them anyway.
 #+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
+(defun evil-paste-after-from-0 ()
+  (interactive)
+  (let ((evil-this-register ?0))
+	(call-interactively 'evil-paste-after)))
+
+(defun evil-paste-before-from-0 ()
+  (interactive)
+  (let ((evil-this-register ?0))
+	(call-interactively 'evil-paste-before)))
+
 (use-package evil
+  :config
+  (define-key evil-visual-state-map "p" 'evil-paste-after-from-0)
+  (define-key evil-visual-state-map "P" 'evil-paste-before-from-0)
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)

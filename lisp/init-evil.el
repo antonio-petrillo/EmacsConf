@@ -20,7 +20,20 @@
   (nto/leader "?" '(which-key-show-top-level :wk "?"))
   (general-evil-setup))
 
+(defun evil-paste-after-from-0 ()
+  (interactive)
+  (let ((evil-this-register ?0))
+	(call-interactively 'evil-paste-after)))
+
+(defun evil-paste-before-from-0 ()
+  (interactive)
+  (let ((evil-this-register ?0))
+	(call-interactively 'evil-paste-before)))
+
 (use-package evil
+  :config
+  (define-key evil-visual-state-map "p" 'evil-paste-after-from-0)
+  (define-key evil-visual-state-map "P" 'evil-paste-before-from-0)
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
