@@ -6,9 +6,9 @@
       '(face indentation tabs tab-mark spaces space-mark newline newline-mark
         trailing lines-tail)
       whitespace-display-mappings
-      '((tab-mark ?\t [?› ?\t])
-        (newline-mark ?\n [?¬ ?\n])
-        (space-mark ?\  [?·] [?.])))
+      '((tab-mark ?\t [?ï¿½ ?\t])
+        (newline-mark ?\n [?ï¿½ ?\n])
+        (space-mark ?\  [?ï¿½] [?.])))
 
 (defun nto/backward-kill-word()
   "Same as `backward-kill-word' but if it is invoked on a white space character
@@ -157,19 +157,23 @@ of delete the previous word."
   (nto/leader
 	"js" '(nto/goto-match-paren :wk "start of sexp")))
 
+(use-package darkroom
+  :init
+  (nto/leader
+	"tz" '(darkroom-tentative-mode :wk "zen")))
+
 (use-package rotate-text
   :after general
   :config
   (add-to-list 'rotate-text-words '("len" "length" "size"))
   (add-to-list 'rotate-text-words '("int" "long"))
-  (add-to-list 'rotate-text-words '("u8" "u16" "u32" "u64" "u128"))
-  (add-to-list 'rotate-text-words '("f16" "f32" "f64" "f128"))
-  (add-to-list 'rotate-text-words '("i8" "i16" "i32" "i64" "i128"))
   (add-to-list 'rotate-text-words '("float" "double"))
   (add-to-list 'rotate-text-words '("char" "char*"))
   (add-to-list 'rotate-text-words '("true" "false"))
-  (add-to-list 'rotate-text-words '("def" "defn" "fn"))
+  (add-to-list 'rotate-text-words '("def" "defn" "fn" "defun"))
+  (add-to-list 'rotate-text-words '("fun" "func" "function"))
   (add-to-list 'rotate-text-words '("True" "False"))
+  (add-to-list 'rotate-text-words '("true" "false"))
   (add-to-list 'rotate-text-words '("t" "nil"))
   :init
   (global-set-key (kbd "M-r") 'rotate-text)

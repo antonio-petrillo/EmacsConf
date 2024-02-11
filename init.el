@@ -56,4 +56,5 @@
 (require 'init-mouse)
 (require 'init-browser)
 (require 'init-os)
+(require 'init-prog)
 (require 'init-app)

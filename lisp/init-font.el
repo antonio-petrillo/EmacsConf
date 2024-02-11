@@ -10,7 +10,7 @@
 	  default-process-coding-system '(utf-8-unix . utf-8-unix))
 
 (defun nto/set-font-all (selected)
-  "Set `selected' font to all the faces"
+  "Set `selected' font to all the faces, this will apply only if the `selected' font is found in the system"
   (when (find-font (font-spec :name selected))
 	(set-face-attribute 'default nil :font selected :height 120)
 	(set-face-attribute 'fixed-pitch nil :font selected :height 120)

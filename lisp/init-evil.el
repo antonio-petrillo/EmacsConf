@@ -20,7 +20,20 @@
   (nto/leader "?" '(which-key-show-top-level :wk "?"))
   (general-evil-setup))
 
+(defun evil-paste-after-from-0 ()
+  (interactive)
+  (let ((evil-this-register ?0))
+	(call-interactively 'evil-paste-after)))
+
+(defun evil-paste-before-from-0 ()
+  (interactive)
+  (let ((evil-this-register ?0))
+	(call-interactively 'evil-paste-before)))
+
 (use-package evil
+  :config
+  (define-key evil-visual-state-map "p" 'evil-paste-after-from-0)
+  (define-key evil-visual-state-map "P" 'evil-paste-before-from-0)
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
@@ -43,6 +56,8 @@
   (define-key evil-insert-state-map (kbd "C-d") 'delete-char)
   (define-key evil-normal-state-map (kbd "C-n") 'next-line)
   (define-key evil-normal-state-map (kbd "C-p") 'previous-line)
+  (define-key evil-normal-state-map (kbd "C-f") 'forward-char)
+  (define-key evil-normal-state-map (kbd "C-b") 'backward-char)
   (define-key evil-normal-state-map (kbd "C-d") 'delete-char)
   (define-key evil-motion-state-map "0" 'evil-beginning-of-line)
   (evil-set-initial-state 'messages-buffer-mode 'normal)
@@ -70,16 +85,39 @@
   :after evil
   :init
   (setq evil-collection-magit-use-z-for-folds nil)
-  :config
-  (setq evil-want-C-i-jump nil)
   (evil-collection-init)
+  :config
   (evil-collection-unimpaired-mode -1)
   (global-evil-collection-unimpaired-mode -1))
 
 (use-package evil-snipe
   :after evil
-  :config
+  :init
   (evil-snipe-mode +1)
+  (evil-define-key '(normal motion) evil-snipe-local-mode-map
+	"s" 'evil-snipe-s
+	"S" 'evil-snipe-S
+	"f" 'evil-snipe-f
+	"F" 'evil-snipe-F)
+
+  (evil-define-key 'operator evil-snipe-local-mode-map
+	"z" 'evil-snipe-s
+	"Z" 'evil-snipe-S
+	"x" 'evil-snipe-x
+	"X" 'evil-snipe-X)
+
+  (evil-define-key 'motion evil-snipe-override-local-mode-map
+	"f" 'evil-snipe-f
+	"F" 'evil-snipe-F
+	"t" 'evil-snipe-t
+	"T" 'evil-snipe-T)
+
+  (when evil-snipe-override-evil-repeat-keys
+	(evil-define-key 'motion map
+      ";" 'evil-snipe-repeat
+      "," 'evil-snipe-repeat-reverse))
+
+  :config
   (setq evil-snipe-scope 'buffer))
 
 (use-package evil-escape

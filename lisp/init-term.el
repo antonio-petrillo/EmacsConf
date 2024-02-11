@@ -1,6 +1,7 @@
 (when (not (eq system-type 'windows-nt))
   (use-package vterm
-	:after general)
+	:after general
+	:demand t)
 
   (use-package vterm-toggle
 	:after vterm
@@ -16,7 +17,7 @@
 						  :repo "jschaf/powershell.el")
 	:init
 	(nto/leader
-	  "ot" '(powershell :wk "powershell(sucks)"))))
+	  "ot" '(powershell :wk "powershell"))))
 
 (use-package eshell
   :init

@@ -26,4 +26,8 @@ bookmarks
 /projectile-bookmarks.eld
 /strokes
 request/curl-cookie-jar
+<<<<<<< HEAD
 projectile.cache
+=======
+/projects
+>>>>>>> a0b000d0a4d092fef5fae9ed3d2ab0865f4eb574
