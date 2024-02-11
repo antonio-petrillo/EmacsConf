@@ -1,4 +1,7 @@
 (use-package google-translate
+  :after general
+  :config
+  (push "\\*Google Translate\\*"  popper-reference-buffers)
   :init
   (setq google-translate-translation-directions-alist
         '(("it" . "en") ("en" . "it")))

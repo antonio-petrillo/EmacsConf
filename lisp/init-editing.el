@@ -160,7 +160,7 @@ of delete the previous word."
 (use-package darkroom
   :init
   (nto/leader
-	"tz" '(darkroom-tentative-mode :wk "focus")))
+	"tz" '(darkroom-tentative-mode :wk "zen")))
 
 (use-package rotate-text
   :after general

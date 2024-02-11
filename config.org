@@ -167,6 +167,7 @@ Each ~require~ load a different module.
 (require 'init-mouse)
 (require 'init-browser)
 (require 'init-os)
+(require 'init-prog)
 (require 'init-app)
 #+end_src
 
@@ -252,6 +253,7 @@ Change the behaviour of the modes listed above and other basic settings:
 + /GCMH/ for a better garbage collector
 + /use-package/ to ensure that it will use the latest version
 + /consult/ made available to all the other modules
++ /popper/ to configure popup rules, it's here so I don't need to add as dependencies in ~:after~ clause whenever I need it
 #+begin_src emacs-lisp :tangle "lisp/init-core.el" :mkdirp yes
 (use-package gcmh
   :demand t
@@ -269,6 +271,20 @@ Change the behaviour of the modes listed above and other basic settings:
 (use-package transient
   :straight t
   :defer t)
+
+(use-package popper
+  :bind (("C-`" . popper-toggle)
+		 ("M-`" . popper-cycle)
+		 ("C-M-`" . popper-toggle-type))
+  :init
+  (setq popper-reference-buffers
+		'("\\*Messages\\*"
+		  "Output\\*$"
+		  "\\*Async Shell Command\\*"
+		  help-mode
+		  compilation-mode))
+  (popper-mode +1)
+  (popper-echo-mode +1))
 #+end_src
 
 *** End
@@ -961,7 +977,7 @@ When toggled on it works only when there is one window.
 (use-package darkroom
   :init
   (nto/leader
-	"tz" '(darkroom-tentative-mode :wk "focus")))
+	"tz" '(darkroom-tentative-mode :wk "zen")))
 #+end_src
 
 *** Rotate text
@@ -1326,6 +1342,9 @@ Package more related to writing more than editing
 A great package to query google translate, it work pretty well with word at point and selected region.
 #+begin_src emacs-lisp :tangle "lisp/init-writing.el" :mkdirp yes
 (use-package google-translate
+  :after general
+  :config
+  (push "\\*Google Translate\\*"  popper-reference-buffers)
   :init
   (setq google-translate-translation-directions-alist
         '(("it" . "en") ("en" . "it")))
@@ -1641,7 +1660,7 @@ Module ~init-project.el~ ends here
 #+end_src
 
 ** Module ~init-embark.el~
-Recently I've read [[https://karthinks.com/software/fifteen-ways-to-use-embark/][fifteen ways to use embark]] and it is a game changing, it require a little bit to stick to it but the gain is incredible.
+Recently I've read [[https://karthinks.com/software/fifteen-ways-to-use-embark/][fifteen ways to use embark]] and it is a game changing, it require a little bit to stick to its workflow but the gain is incredible.
 *** Install embark
 #+begin_src emacs-lisp :tangle "lisp/init-embark.el" :mkdirp yes
 (use-package embark
@@ -1670,45 +1689,45 @@ Recently I've read [[https://karthinks.com/software/fifteen-ways-to-use-embark/]
 *** Embark extra, ace window action
 Copied from the *karthinks* article.
 #+begin_src emacs-lisp :tangle "lisp/init-embark.el"  :mkdirp yes
-  (with-eval-after-load 'embark
-    (eval-when-compile
-  	(defmacro nto/embark-ace-action (fn)
-  	  `(defun ,(intern (concat "nto/embark-ace-" (symbol-name fn))) ()
-  		 (interactive)
-  		 (with-demoted-errors "%s"
-  		   (require 'ace-window)
-  		   (let ((aw-dispatch-always t))
-  			 (aw-switch-to-window (aw-select nil))
-  			 (call-interactively (symbol-function ',fn)))))))
+(with-eval-after-load 'embark
+  (eval-when-compile
+	(defmacro nto/embark-ace-action (fn)
+	  `(defun ,(intern (concat "nto/embark-ace-" (symbol-name fn))) ()
+		 (interactive)
+		 (with-demoted-errors "%s"
+		   (require 'ace-window)
+		   (let ((aw-dispatch-always t))
+			 (aw-switch-to-window (aw-select nil))
+			 (call-interactively (symbol-function ',fn)))))))
 
-    ;; RMB: work when there are at least 3 window
-    (define-key embark-file-map (kbd "o") (nto/embark-ace-action find-file))
-    (define-key embark-buffer-map (kbd "o") (nto/embark-ace-action switch-to-buffer))
-    (define-key embark-bookmark-map (kbd "o") (nto/embark-ace-action bookmark-jump)))
+  ;; RMB: work when there are at least 3 window
+  (define-key embark-file-map (kbd "o") (nto/embark-ace-action find-file))
+  (define-key embark-buffer-map (kbd "o") (nto/embark-ace-action switch-to-buffer))
+  (define-key embark-bookmark-map (kbd "o") (nto/embark-ace-action bookmark-jump)))
 #+end_src
 
 *** Embark extra, split actions
 Also copied from the *karthinks* article.
 #+begin_src emacs-lisp :tangle "lisp/init-embark.el" :mkdirp yes
-  (with-eval-after-load 'embark
-    (eval-when-compile
-  	(defmacro nto/embark-split-action (fn split-type)
-        `(defun ,(intern (concat "nto/embark-"
-  							   (symbol-name fn)
-  							   "-"
-  							   (car (last  (split-string
-  											(symbol-name split-type) "-")))))
-  		   (interactive)
-  		 (funcall #',split-type)
-  		 (call-interactively #',fn))))
+(with-eval-after-load 'embark
+  (eval-when-compile
+	(defmacro nto/embark-split-action (fn split-type)
+      `(defun ,(intern (concat "nto/embark-"
+							   (symbol-name fn)
+							   "-"
+							   (car (last  (split-string
+											(symbol-name split-type) "-")))))
+		   (interactive)
+		 (funcall #',split-type)
+		 (call-interactively #',fn))))
 
-    (define-key embark-file-map     (kbd "s") (nto/embark-split-action find-file split-window-below))
-    (define-key embark-buffer-map   (kbd "s") (nto/embark-split-action switch-to-buffer split-window-below))
-    (define-key embark-bookmark-map (kbd "s") (nto/embark-split-action bookmark-jump split-window-below))
+  (define-key embark-file-map     (kbd "s") (nto/embark-split-action find-file split-window-below))
+  (define-key embark-buffer-map   (kbd "s") (nto/embark-split-action switch-to-buffer split-window-below))
+  (define-key embark-bookmark-map (kbd "s") (nto/embark-split-action bookmark-jump split-window-below))
 
-    (define-key embark-file-map     (kbd "v") (nto/embark-split-action find-file split-window-right))
-    (define-key embark-buffer-map   (kbd "v") (nto/embark-split-action switch-to-buffer split-window-right))
-    (define-key embark-bookmark-map (kbd "v") (nto/embark-split-action bookmark-jump split-window-right)))
+  (define-key embark-file-map     (kbd "v") (nto/embark-split-action find-file split-window-right))
+  (define-key embark-buffer-map   (kbd "v") (nto/embark-split-action switch-to-buffer split-window-right))
+  (define-key embark-bookmark-map (kbd "v") (nto/embark-split-action bookmark-jump split-window-right)))
 #+end_src
 
 *** End
@@ -1781,7 +1800,7 @@ Sometime use the mouse is not that bad.
 Remember to registry new strokes with src_emacs-lisp{strokes-global-set-stroke}.
 A nice one to set up are:
 + =~= to open dired on home directory
-*** Setup strokes on laptop
+*** Setup strokes, mainly for laptop
 Read about strokes [[https://karthinks.com/software/different-strokes-for-different-folks/][here]].
 **** Utility 
 #+begin_src emacs-lisp :tangle "lisp/init-mouse.el" :mkdirp yes
@@ -1869,6 +1888,23 @@ Module ~init-os.el~ ends here
 (provide 'init-os)
 #+end_src
 
+** TODO Module ~init-prog.el~
+*** Setup for treesitter
+#+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
+(use-package treesit-auto
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
+#+end_src
+*** TODO Setup for eglot
+*** End
+Module ~init-prog.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
+(provide 'init-prog)
+#+end_src
+
 ** Module ~init-app.el~
 *** Apps to add
 + irc
@@ -1887,7 +1923,7 @@ I prefer not to bind any key for this functionality.
 #+end_src
 
 *** Selectric
-The power of emacs with the sound of a typewriter, simply perfect.
+The power of emacs with the sound of a typewriter, just perfect.
 #+begin_src emacs-lisp :tangle "lisp/init-app.el" :mkdirp yes
 (use-package selectric-mode
   :commands selectric-mode)
