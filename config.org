@@ -331,20 +331,7 @@ I define two leader:
 I learned first vim and only after switched to *Emacs* for this reason I prefer to stick with the modal editor approach.
 For a couple of months I sticked to the *default* bindings and learned (not in deepth) them, and honestly they are not that bad as everybody says, so I mix the twos, doing so I've lost some vim bindings but I don't use them anyway.
 #+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
-(defun evil-paste-after-from-0 ()
-  (interactive)
-  (let ((evil-this-register ?0))
-	(call-interactively 'evil-paste-after)))
-
-(defun evil-paste-before-from-0 ()
-  (interactive)
-  (let ((evil-this-register ?0))
-	(call-interactively 'evil-paste-before)))
-
 (use-package evil
-  :config
-  (define-key evil-visual-state-map "p" 'evil-paste-after-from-0)
-  (define-key evil-visual-state-map "P" 'evil-paste-before-from-0)
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
@@ -1608,6 +1595,8 @@ Module ~init-magit.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-project.el" :mkdirp yes
 (use-package projectile
   :defer t
+  :config
+  (setq projectile-sort-order 'recently-active)
   :init
   (nto/leader
 	"pf" '(projectile-find-file :wk "find")
@@ -1618,7 +1607,7 @@ Module ~init-magit.el~ ends here
 	"p?" '(projectile-find-references :wk "reference")
     "ph" '(projectile-find-other-file :wk "interface <-> impl")
 	"pp" '(projectile-switch-project :wk "switch")
-    "pt" '(projectile-test-project :wk "test")
+    "pt" '(projectile-test-project :wk "run test")
     "pc" '(projectile-compile-project :wk "compile")
     "p&" '(projectile-run-async-shell-command-in-root :wk "run command"))
   (projectile-mode +1)
@@ -1912,6 +1901,36 @@ Module ~init-os.el~ ends here
   (global-treesit-auto-mode))
 #+end_src
 *** TODO Setup for eglot
+#+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
+(use-package eglot
+  :init)
+
+#+end_src
+*** End
+*** Language support
+**** LSP Mode setup
+#+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
+(defun nto/lsp-setup ()
+  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+  (lsp-headerline-breadcrumb-mode))
+
+(use-package lsp-mode
+  :hook (lsp-mode . nto/lsp-setup)
+  :init
+  (setq lsp-keymap-prefix "C-c l")
+  :config
+  (lsp-enable-which-key-integration t)
+  :commands
+  (lsp lsp-deferred))
+
+(use-package lsp-ui
+  :hook (lsp-mode . lsp-ui-mode)
+  :commands lsp-ui-mode)
+#+end_src
+**** Go lang
+#+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
+(use-package go-mode)
+#+end_src
 *** End
 Module ~init-prog.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes

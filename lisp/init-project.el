@@ -1,5 +1,7 @@
 (use-package projectile
   :defer t
+  :config
+  (setq projectile-sort-order 'recently-active)
   :init
   (nto/leader
 	"pf" '(projectile-find-file :wk "find")
@@ -10,7 +12,7 @@
 	"p?" '(projectile-find-references :wk "reference")
     "ph" '(projectile-find-other-file :wk "interface <-> impl")
 	"pp" '(projectile-switch-project :wk "switch")
-    "pt" '(projectile-test-project :wk "test")
+    "pt" '(projectile-test-project :wk "run test")
     "pc" '(projectile-compile-project :wk "compile")
     "p&" '(projectile-run-async-shell-command-in-root :wk "run command"))
   (projectile-mode +1)
