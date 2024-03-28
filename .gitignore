@@ -31,3 +31,7 @@ projectile.cache
 =======
 /projects
 >>>>>>> a0b000d0a4d092fef5fae9ed3d2ab0865f4eb574
+*.value
+*.data
+tramp
+url/cookies

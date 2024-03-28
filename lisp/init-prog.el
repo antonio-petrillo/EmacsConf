@@ -5,9 +5,6 @@
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
-(use-package eglot
-  :init)
-
 (defun nto/lsp-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
   (lsp-headerline-breadcrumb-mode))
@@ -25,6 +22,10 @@
   :hook (lsp-mode . lsp-ui-mode)
   :commands lsp-ui-mode)
 
-(use-package go-mode)
+(use-package go-mode
+  :config
+  (add-hook 'go-mode-hook 'lsp-deferred))
+
+(use-package zig-mode)
 
 (provide 'init-prog)
