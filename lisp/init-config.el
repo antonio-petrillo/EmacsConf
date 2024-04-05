@@ -19,7 +19,7 @@ Finally add the file to the load path and `require' it"
 	(unless (file-exists-p conf-path)
 	  (nto/create-default-config "snippets/config-template.el" conf-path)) ;; create conf file if not exist
 	(add-to-list 'load-path conf-dir) ;; add to load path
-	(require 'config))) ;; load persona config
+	(require 'config))) ;; load personal config
 
 (nto/load-or-create-config-file)
 

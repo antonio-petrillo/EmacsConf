@@ -8,7 +8,8 @@
 	"w1" '(delete-other-windows :wk "delete others")
 	"w!" '(ace-delete-other-windows :wk "(ACE) delete others")
 	"w0" '(delete-windows :wk "delete")
-	"w)" '(ace-delete-windows :wk "(ACE) delete")
+	"wq" '(ace-delete-window :wk "(ACE) delete")
+	"wS" '(ace-swap-window :wk "(ACE) swap")
 	"wh" '(windmove-left :wk "move left")
 	"wj" '(windmove-down :wk "move down")
 	"wk" '(windmove-up :wk "move up")
@@ -20,7 +21,9 @@
 	"wc" '(delete-window :wk "delete")
 	"w=" '(balance-windows-area :wk "equal")
 	"wD" '(kill-buffer-and-window :wk "kill buffer and window")
-	"wm" '(delete-other-windows :wk "maximize")))
+	"wm" '(delete-other-windows :wk "maximize")
+	"wu" '(winner-undo :wk "undo")
+	"wU" '(winner-redo :wk "redo")))
 
 (use-package rotate
   :after general
@@ -47,7 +50,7 @@
 (use-package ace-window
   :after general
   :init
-  (setq aw-dispatch-always t)
+  (setq aw-dispatch-always nil)
   (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
   (defvar aw-dispatch-alist
 	'((?x aw-delete-window "Delete Window")

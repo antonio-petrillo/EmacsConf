@@ -13,6 +13,7 @@
   :hook (lsp-mode . nto/lsp-setup)
   :init
   (setq lsp-keymap-prefix "C-c l")
+  ;; (general-nmap "SPC c" (general-simulate-key "C-c l"))
   :config
   (lsp-enable-which-key-integration t)
   :commands

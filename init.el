@@ -25,7 +25,8 @@
       backup-inhibited nil
       auto-save-default nil
 	  initial-buffer-choice t
-      create-lockfiles nil)
+      create-lockfiles nil
+	  winner-mode t)
 
 (when (native-comp-available-p)
   (setq native-comp-async-report-warnings-errors 'silent

@@ -16,4 +16,9 @@
 	"fs" '(save-buffer :wk "save")
 	"fr" '(consult-recent-file :wk "recent")))
 
+(use-package scratch-pop
+  :init
+  (nto/leader
+	"bs" '(scratch-pop :wk "popup scratch")))
+
 (provide 'init-buffer)

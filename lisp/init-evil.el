@@ -120,4 +120,22 @@
   (setq-default evil-escape-key-sequence "jk")
   (setq-default evil-escape-unordered-key-sequence nil))
 
+(use-package evil-lion
+  :after evil
+  :config
+  (evil-lion-mode))
+
+(use-package evil-visualstar
+  :after evil
+  :config
+  (global-evil-visualstar-mode))
+
+(use-package evil-numbers
+  :after evil
+  :config
+  (evil-define-key '(normal visual) 'global (kbd "+") 'evil-numbers/inc-at-pt)
+  (evil-define-key '(normal visual) 'global (kbd "_") 'evil-numbers/dec-at-pt)
+  (evil-define-key '(normal visual) 'global (kbd "C-+") 'evil-numbers/inc-at-pt-incremental)
+  (evil-define-key '(normal visual) 'global (kbd "C-_") 'evil-numbers/dec-at-pt-incremental))
+
 (provide 'init-evil)

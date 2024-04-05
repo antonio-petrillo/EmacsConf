@@ -31,7 +31,7 @@ First thing first, here are some basic configuration, like /disable/ startup scr
       inhibit-startup-buffer-menu t)
 
 (menu-bar-mode 1)
-(scroll-bar-mode 1)
+(scroll-bar-mode -1)
 (tool-bar-mode -1)
 
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -131,7 +131,8 @@ Now a couple of *variable* configuration that will be used in the remaining code
       backup-inhibited nil
       auto-save-default nil
 	  initial-buffer-choice t
-      create-lockfiles nil)
+      create-lockfiles nil
+	  winner-mode t)
 
 (when (native-comp-available-p)
   (setq native-comp-async-report-warnings-errors 'silent
@@ -199,7 +200,7 @@ Finally add the file to the load path and `require' it"
 	(unless (file-exists-p conf-path)
 	  (nto/create-default-config "snippets/config-template.el" conf-path)) ;; create conf file if not exist
 	(add-to-list 'load-path conf-dir) ;; add to load path
-	(require 'config))) ;; load persona config
+	(require 'config))) ;; load personal config
 
 (nto/load-or-create-config-file)
 #+end_src
@@ -252,8 +253,10 @@ Change the behaviour of the modes listed above and other basic settings:
 *** Add packages
 + /GCMH/ for a better garbage collector
 + /use-package/ to ensure that it will use the latest version
++ /no-littering/ to prevent emacs home directory cluttering
 + /consult/ made available to all the other modules
 + /popper/ to configure popup rules, it's here so I don't need to add as dependencies in ~:after~ clause whenever I need it
++ /repeat-mode/ for repeated keymaps
 #+begin_src emacs-lisp :tangle "lisp/init-core.el" :mkdirp yes
 (use-package gcmh
   :demand t
@@ -261,11 +264,14 @@ Change the behaviour of the modes listed above and other basic settings:
 
 (use-package use-package)
 
+(use-package no-littering
+  :demand t)
+
 (use-package consult
   :bind
   (("M-y" . consult-yank-pop)))
 
-;; magit fix transient bug, should fix in emacs 30.x
+;; magit fix transient bug, should be fixed in emacs 30.x
 (use-package magit)
 
 (use-package transient
@@ -280,11 +286,18 @@ Change the behaviour of the modes listed above and other basic settings:
   (setq popper-reference-buffers
 		'("\\*Messages\\*"
 		  "Output\\*$"
+		  "\\*scratch"
 		  "\\*Async Shell Command\\*"
 		  help-mode
 		  compilation-mode))
   (popper-mode +1)
   (popper-echo-mode +1))
+
+(use-package repeat
+  :config
+  (setq repeat-on-final-keystroke t)
+  (setq set-mark-command-repeat-pop t)
+  (repeat-mode 1))
 #+end_src
 
 *** End
@@ -448,42 +461,42 @@ Reach for src_emacs-lisp{(kbd "<escape>")} each time is a bit annoying since it 
   (setq-default evil-escape-unordered-key-sequence nil))
 #+end_src
 
+*** Evil Lion
+Provide =gl= and =gL= motion to align text.
+#+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
+(use-package evil-lion
+  :after evil
+  :config
+  (evil-lion-mode))
+#+end_src
+
+*** Evil Visual Start
+Allow =*= and =#= to search also for visual region.
+#+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
+(use-package evil-visualstar
+  :after evil
+  :config
+  (global-evil-visualstar-mode))
+#+end_src
+
+*** Evil Numbers
+Increase number at point, work on base 2, 8, 10, 16 and more.
+#+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
+(use-package evil-numbers
+  :after evil
+  :config
+  (evil-define-key '(normal visual) 'global (kbd "+") 'evil-numbers/inc-at-pt)
+  (evil-define-key '(normal visual) 'global (kbd "_") 'evil-numbers/dec-at-pt)
+  (evil-define-key '(normal visual) 'global (kbd "C-+") 'evil-numbers/inc-at-pt-incremental)
+  (evil-define-key '(normal visual) 'global (kbd "C-_") 'evil-numbers/dec-at-pt-incremental))
+#+end_src
+
 *** End
 Module ~init-evil.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
 (provide 'init-evil)
 #+end_src
 
-** Module ~init-cache.el~
-A cache can be useful in some cases, both to store data expensive to compute or to have a place that I don't care I mess up.
-Usually the OS have already a =.cache= directory (usually =~/.cache=) and in fact some packages that I use already take advantage of it, but I define mine for the ones that don't do it.
-*** Create cache
-Sidenote: =nto/cache-dir= must be defined in =config.el=.
-#+begin_src emacs-lisp :tangle "lisp/init-cache.el" :mkdirp yes
-(defun nto/ensure-cache-exist (cache-path)
-  (unless (file-directory-p cache-path)
-	(make-directory cache-path :parents)))
-
-(nto/ensure-cache-exist nto/cache-dir)
-#+end_src
-*** Cache helpers
-#+begin_src emacs-lisp :tangle "lisp/init-cache.el" :mkdirp yes
-(defun nto/dired-to-cache ()
-  "Open `nto/cache-dir' in dired"
-  (interactive)
-  (dired nto/cache-dir))
-
-(defun nto/clear-cache ()
-  "Remove all the files in `nto/cache-dir'"
-  (interactive)
-  (delete-directory nto/cache-dir t)
-  (nto/ensure-cache-exist nto/cache-dir))
-#+end_src
-*** End
-Module ~init-cache.el~ ends here
-#+begin_src emacs-lisp :tangle "lisp/init-cache.el" :mkdirp yes
-(provide 'init-cache)
-#+end_src
 ** Module ~init-org.el~
 *** Header 
 #+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
@@ -645,8 +658,8 @@ Consult function to visit the PKM.
   (consult-org-roam-buffer-after-buffers t))
 #+end_src
 
-*** TODO Additional configuration
-+ write src_emacs-lisp{nto/org-cycle-wrapper} function
+*** TODO Denote
+Ready to make the switch, again...
 *** End
 Module ~init-org.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-org.el" :mkdirp yes
@@ -734,7 +747,14 @@ They can be easily swapped for the standard unix version by changing:
 	"fs" '(save-buffer :wk "save")
 	"fr" '(consult-recent-file :wk "recent")))
 #+end_src
-
+*** Popup scratch buffer
+Open /scratch/ as popup in current window.
+#+begin_src emacs-lisp :tangle "lisp/init-buffer.el" :mkdirp yes
+(use-package scratch-pop
+  :init
+  (nto/leader
+	"bs" '(scratch-pop :wk "popup scratch")))
+#+end_src
 *** End
 Module ~init-buffer.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-buffer.el" :mkdirp yes
@@ -889,7 +909,6 @@ Evil don't have a proper undo system so I need to provide one, *undo-fu* is just
   (general-define-key
    :states 'normal
    "u" 'undo-fu-only-undo
-   "s-z" 'undo-fu-only-undo
    "\C-r" 'undo-fu-only-redo))
 
 (use-package undo-fu-session
@@ -941,37 +960,13 @@ In other words *avy-jump*, it is easier to try than to explain.
   :init (setq avy-style 'pre)
   (nto/leader
 	"jj" '(avy-goto-char-timer :wk "char")
+	"je" '(avy-goto-end-of-line :wk "end line")
+	"jp" '(avy-goto-line-above :wk "above line")
+	"jn" '(avy-goto-line-below :wk "below line")
 	"jl" '(avy-goto-line :wk "line")
-	"jw" '(avy-goto-word :wk "word")))
-#+end_src
-
-*** Jump to matching parentheses
-I often need a way to jump between matching parentheses, and since I don't always work with lisp code I need a function that work in all the languages (altough not powerfull like *paredit*).
-Copied from [[https://www.emacswiki.org/emacs/NavigatingParentheses][here]].
-#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
-(defun nto/goto-match-paren (arg)
-  "Go to the matching parenthesis if on parenthesis. Else go to the
-   opening parenthesis one level up."
-  (interactive "p")
-  (cond ((looking-at "\\s\(") (forward-list 1))
-        (t
-         (backward-char 1)
-         (cond ((looking-at "\\s\)")
-                (forward-char 1) (backward-list 1))
-               (t
-                (while (not (looking-at "\\s("))
-                  (backward-char 1)
-                  (cond ((looking-at "\\s\)")
-                         (message "->> )")
-                         (forward-char 1)
-                         (backward-list 1)
-                         (backward-char 1)))))))))
-
-(use-package emacs
-  :after general
-  :init
-  (nto/leader
-	"js" '(nto/goto-match-paren :wk "start of sexp")))
+	"jw" '(:ignore t :wk "word")
+	"jwp" '(avy-goto-word-0-above :wk "prev")
+	"jwn" '(avy-goto-word-0-below :wk "next")))
 #+end_src
 
 *** Distraction free editing
@@ -1439,7 +1434,8 @@ Section related to window manipulation and navigation.
 	"w1" '(delete-other-windows :wk "delete others")
 	"w!" '(ace-delete-other-windows :wk "(ACE) delete others")
 	"w0" '(delete-windows :wk "delete")
-	"w)" '(ace-delete-windows :wk "(ACE) delete")
+	"wq" '(ace-delete-window :wk "(ACE) delete")
+	"wS" '(ace-swap-window :wk "(ACE) swap")
 	"wh" '(windmove-left :wk "move left")
 	"wj" '(windmove-down :wk "move down")
 	"wk" '(windmove-up :wk "move up")
@@ -1451,10 +1447,10 @@ Section related to window manipulation and navigation.
 	"wc" '(delete-window :wk "delete")
 	"w=" '(balance-windows-area :wk "equal")
 	"wD" '(kill-buffer-and-window :wk "kill buffer and window")
-	"wm" '(delete-other-windows :wk "maximize")))
+	"wm" '(delete-other-windows :wk "maximize")
+	"wu" '(winner-undo :wk "undo")
+	"wU" '(winner-redo :wk "redo")))
 #+end_src
-
-**** TODO Setup winner undo & redo 
 
 *** Rotate windows and layout
 The *rotate* package let me cycle between different layout which is often convenient, it also exposse some functions to rotate the currently visible buffers.
@@ -1494,7 +1490,7 @@ To see all the possible action press src_emacs-lisp{(kbd "?")} while there is *a
 (use-package ace-window
   :after general
   :init
-  (setq aw-dispatch-always t)
+  (setq aw-dispatch-always nil)
   (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
   (defvar aw-dispatch-alist
 	'((?x aw-delete-window "Delete Window")
@@ -1670,7 +1666,7 @@ Module ~init-project.el~ ends here
 #+end_src
 
 ** Module ~init-embark.el~
-Recently I've read [[https://karthinks.com/software/fifteen-ways-to-use-embark/][fifteen ways to use embark]] and it is a game changing, it require a little bit to stick to its workflow but the gain is incredible.
+Recently I've read [[https://karthinks.com/software/fifteen-ways-to-use-embark/][fifteen ways to use embark]] and it is a game changing, although it require a little bit of effort to enter in my workflow.
 *** Install embark
 #+begin_src emacs-lisp :tangle "lisp/init-embark.el" :mkdirp yes
 (use-package embark
@@ -1918,6 +1914,7 @@ Module ~init-os.el~ ends here
   :hook (lsp-mode . nto/lsp-setup)
   :init
   (setq lsp-keymap-prefix "C-c l")
+  ;; (general-nmap "SPC c" (general-simulate-key "C-c l"))
   :config
   (lsp-enable-which-key-integration t)
   :commands
@@ -1948,10 +1945,8 @@ Module ~init-prog.el~ ends here
 
 ** Module ~init-app.el~
 *** Apps to add
-+ irc
 + emms (on linux)
 + pdf, nov.el, pen.el
-+ drop-frame
 + restclient
 + plantuml
 + gptel
@@ -1970,6 +1965,45 @@ The power of emacs with the sound of a typewriter, just perfect.
   :commands selectric-mode)
 #+end_src
 
+*** TODO IRC
+Setup ERC, irc client for emacs.
+Missing feature:
++ keybinds in local map =m=.
++ [[https://github.com/kidd/erc-youtube.el][erc-youtube]], need a try.
+#+begin_src emacs-lisp :tangle "lisp/init-app.el" :mkdirp yes
+(use-package erc
+  :init
+  (defun start-irc ()
+	"Connect to irc."
+	(interactive)
+	(when (y-or-n-p (format "connect to: %s?" my-erc-server))
+	  (erc-tls :server my-erc-server
+			   :port my-erc-port
+			   :nick my-erc-nick
+			   :full-name my-erc-full-name
+			   :password my-erc-passwd
+			   :client-certificate t)))
+  :config
+  (require 'erc-autoaway)
+
+  ;; connection params
+  (setq erc-server my-erc-server
+		erc-nick my-erc-nick
+		erc-user-full-name my-erc-full-name
+		erc-track-shorten-start 8
+		erc-autojoin-channels-alist my-erc-autojoin-channels
+		erc-kill-buffer-on-part t
+		erc-auto-query 'bury)
+  ;; erc config
+  (setq erc-interpret-mirc-color t
+		erc-kill-buffer-on-part t
+		erc-kill-queries-on-quit t
+		erc-kill-server-buffer-on-quit t
+
+		erc-autoaway-idle-method 'user
+		erc-auto-discard-away t
+		erc-autoaway-idle-seconds 600))
+#+end_src
 *** End
 Module ~init-app.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-app.el" :mkdirp yes

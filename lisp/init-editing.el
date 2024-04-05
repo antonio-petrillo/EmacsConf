@@ -91,7 +91,6 @@ of delete the previous word."
   (general-define-key
    :states 'normal
    "u" 'undo-fu-only-undo
-   "s-z" 'undo-fu-only-undo
    "\C-r" 'undo-fu-only-redo))
 
 (use-package undo-fu-session
@@ -130,32 +129,13 @@ of delete the previous word."
   :init (setq avy-style 'pre)
   (nto/leader
 	"jj" '(avy-goto-char-timer :wk "char")
+	"je" '(avy-goto-end-of-line :wk "end line")
+	"jp" '(avy-goto-line-above :wk "above line")
+	"jn" '(avy-goto-line-below :wk "below line")
 	"jl" '(avy-goto-line :wk "line")
-	"jw" '(avy-goto-word :wk "word")))
-
-(defun nto/goto-match-paren (arg)
-  "Go to the matching parenthesis if on parenthesis. Else go to the
-   opening parenthesis one level up."
-  (interactive "p")
-  (cond ((looking-at "\\s\(") (forward-list 1))
-        (t
-         (backward-char 1)
-         (cond ((looking-at "\\s\)")
-                (forward-char 1) (backward-list 1))
-               (t
-                (while (not (looking-at "\\s("))
-                  (backward-char 1)
-                  (cond ((looking-at "\\s\)")
-                         (message "->> )")
-                         (forward-char 1)
-                         (backward-list 1)
-                         (backward-char 1)))))))))
-
-(use-package emacs
-  :after general
-  :init
-  (nto/leader
-	"js" '(nto/goto-match-paren :wk "start of sexp")))
+	"jw" '(:ignore t :wk "word")
+	"jwp" '(avy-goto-word-0-above :wk "prev")
+	"jwn" '(avy-goto-word-0-below :wk "next")))
 
 (use-package darkroom
   :init

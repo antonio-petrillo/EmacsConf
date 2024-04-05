@@ -8,6 +8,11 @@
 
 (setq org-directory "~/Documents/Org")
 
-(setq nto/cache-dir "~/.cache")
+(setq my-erc-server "irc.libera.chat"
+      my-erc-port 6697
+	  my-erc-nick "not the WiZ"
+	  my-erc-full-name "your name"
+	  my-erc-passwd "s3c43t"
+	  my-erc-autojoin-channels nil)
 
 (provide 'config)

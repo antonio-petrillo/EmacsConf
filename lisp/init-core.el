@@ -26,11 +26,14 @@
 
 (use-package use-package)
 
+(use-package no-littering
+  :demand t)
+
 (use-package consult
   :bind
   (("M-y" . consult-yank-pop)))
 
-;; magit fix transient bug, should fix in emacs 30.x
+;; magit fix transient bug, should be fixed in emacs 30.x
 (use-package magit)
 
 (use-package transient
@@ -45,10 +48,17 @@
   (setq popper-reference-buffers
 		'("\\*Messages\\*"
 		  "Output\\*$"
+		  "\\*scratch"
 		  "\\*Async Shell Command\\*"
 		  help-mode
 		  compilation-mode))
   (popper-mode +1)
   (popper-echo-mode +1))
+
+(use-package repeat
+  :config
+  (setq repeat-on-final-keystroke t)
+  (setq set-mark-command-repeat-pop t)
+  (repeat-mode 1))
 
 (provide 'init-core)
