@@ -1,4 +1,4 @@
-/straight/
+straight/
 /.cache/*
 /auto-save-list/
 /recentf/*
@@ -35,3 +35,18 @@ projectile.cache
 *.data
 tramp
 url/cookies
+var/
+# Compiled
+*.elc
+
+# Packaging
+.cask
+
+# Backup files
+*~
+
+# Undo-tree save-files
+*.~undo-tree
+
+bookmarks
+elpa/*
