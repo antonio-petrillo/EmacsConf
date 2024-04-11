@@ -13,6 +13,15 @@
 	  org-src-window-setup 'current-window
       org-edit-src-content-indentation 0)
 
+(setq org-cite-global-bibliography `(,(expand-file-name "assets/bibliography.bib" org-directory)))
+
+(setq org-startup-indented t
+	  org-pretty-entities t
+	  org-use-sub-superscripts "{}"
+	  org-hide-emphasis-markers nil
+	  org-startup-with-inline-images t
+	  org-image-actual-width '(300))
+
 (advice-add 'org-refile :after 'org-save-all-org-buffers)
 
 (define-key org-mode-map (kbd "C-'") nil)
@@ -37,6 +46,10 @@
   :after org
   :init
   (add-hook 'org-mode-hook #'org-modern-mode))
+
+(use-package org-appear
+  :hook
+  (org-mode . org-appear-mode))
 
 (defun nto/org-roam-node-has-any-tags-p (node tags)
   "Predicate that return `t' if node has at least one of `tags', `nil' otherwise"
@@ -121,5 +134,100 @@
   :custom
   (consult-org-roam-grep-func #'consult-ripgrep)
   (consult-org-roam-buffer-after-buffers t))
+
+(use-package citar
+  :no-require
+  :custom
+  (org-cite-insert-processor 'citar)
+  (org-cite-follow-processor 'citar)
+  (org-cite-activate-processor 'citar)
+  (citar-bibliography org-cite-global-bibliography)
+  :hook
+  (LaTex-mode . citar-capf-setup)
+  (org-mode . citar-capf-setup)
+  :bind
+  (:map org-mode-map
+		:package org
+		("C-c b" . #'org-cite-insert)))
+
+(use-package citar-embark
+  :after citar embark
+  :no-require
+  :config
+  (citar-embark-mode))
+
+;; checkout denote silos (for work notes)
+(use-package denote
+  :after general
+  :init
+  (setq denote-infer-keywords t)
+  (setq denote-sort-keywords t)
+  (setq denote-directory (expand-file-name "notes" org-directory))
+  (setq denote-prompts '(title keywords))
+  (setq denote-file-type 'org)
+  (setq denote-known-keywords '("emacs" "programming" "algorithm" "datastructure"
+								"pattern" "math" "art" "music"
+								"film" "book" "philosophy" "meta"
+								"linux" "windows" "fitness"))
+  (setq denote-journal-extras-title-format 'day-date-month-year)
+  (setq denote-journal-extras-directory (expand-file-name "journal" denote-directory))
+
+  (add-hook 'dired-mode-hook #'denote-dired-mode)
+  (add-hook 'find-file-hook #'denote-link-buttonize-buffer)
+
+  (nto/leader
+	"d" '(:ignore t :wk "denote")
+	"df" '(denote :wk "find")
+	"dd" '(list-denote :wk "dired")
+	"dr" '(denote-rename-file :wk "rename")
+	"di" '(denote-link-or-create :wk "link")
+	"db" '(denote-backlink :wk "backlink")
+	"dj" '(denote-journal-extras-new-entry :wk "journal")
+;;	"dq" '(denote-org-dblock-insert-links :wk "query") need further reading on this feature
+	))
+
+(use-package denote-menu
+  :after denote
+  :config
+  (define-key denote-menu-mode-map (kbd "c") #'denote-menu-clear-filters)
+  (define-key denote-menu-mode-map (kbd "/ r") #'denote-menu-filter)
+  (define-key denote-menu-mode-map (kbd "/ k") #'denote-menu-filter-by-keyword)
+  (define-key denote-menu-mode-map (kbd "/ o") #'denote-menu-filter-out-keyword)
+  (define-key denote-menu-mode-map (kbd "e") #'denote-menu-export-to-dired))
+
+(use-package denote-explore
+  :straight (denote-explore :type git
+						:host github
+						:repo "pprevos/denote-explore")
+  :after denote
+  :custom
+  (denote-explore-network-directory (expand-file-name "network" denote-directory))
+  (denote-explore-network-filename "denote-network")
+  :init
+  (nto/leader
+	"dJ" '(:ignore t :wk "janitor")
+	"dJd" '(denote-explore-identify-duplicate-notes :wk "duplicate")
+	"dJz" '(denote-explore-zero-keywords :wk "zero keywords")
+	"dJs" '(denote-explore-single-keywords :wk "single keywords")
+	"dJS" '(denote-explore-sort-keywords :wk "sort keywords")
+	"dJr" '(denote-explore-rename-keywords :wk "rename keywords")
+
+	"de" '(:ignore t :wk "explore")
+	"den" '(denote-explore-network :wk "network")
+	"dei" '(denote-explore-isolated-notes :wk "isolated")
+	"der" '(denote-explore-network-regenerate :wk "regenerate")
+	"deb" '(denote-explore-degree-barchart :wk "degree chart")
+
+	"ds" '(:ignore t :wk "statistics")
+	"dsc" '(denote-explore-count-notes :wk "count notes")
+	"dsC" '(denote-explore-count-keywords :wk "keywords notes")
+	"dsb" '(denote-explore-keywords-barchart :wk "keywords chart")
+	"dsx" '(denote-explore-extensions-barchart :wk "extensions chart")
+	"dsB" '(denote-explore-degree-barchart :wk "degree chart")
+
+	"dw" '(:ignore t  :wk "walk")
+	"dwr" '(denote-explore-random-note :wk "note")
+	"dwr" '(denote-explore-random-link :wk "link")
+	"dwr" '(denote-explore-random-keyword :wk "keyword")))
 
 (provide 'init-org)
