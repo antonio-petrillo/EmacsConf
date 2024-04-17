@@ -51,90 +51,6 @@
   :hook
   (org-mode . org-appear-mode))
 
-(defun nto/org-roam-node-has-any-tags-p (node tags)
-  "Predicate that return `t' if node has at least one of `tags', `nil' otherwise"
-  (seq-intersection (org-roam-node-tags node) tags))
-
-(defun nto/org-roam-node-filter-by-tags-any ()
-  "Find and open an Org-roam node if it has any of the specified tags."
-  (interactive)
-  (let ((tags (completing-read-multiple "select tags: " (org-roam-tag-completions))))
-    (org-roam-node-find nil nil (lambda (node) (nto/org-roam-node-has-any-tags-p node tags)))))
-
-(defun nto/org-roam-node-has-all-tags-p (node tags)
-  "Predicate that return `t' if node has all the `tags', `nil' otherwise"
-  (not (seq-difference tags (org-roam-node-tags node))))
-
-(defun nto/org-roam-node-filter-by-tags-all ()
-  "Find and open an Org-roam node if it has all the specified tags."
-  (interactive)
-  (let ((tags (sort (completing-read-multiple "select tags: " (org-roam-tag-completions)) #'string-lessp)))
-    (org-roam-node-find nil nil (lambda (node) (nto/org-roam-node-has-all-tags-p node tags)))))
-
-(use-package org-roam
-  :when (and (boundp 'org-directory) org-directory)
-  :after general
-  :init
-  (setq org-roam-v2-ack t
-		org-roam-completion-everywhere nil)
-  (org-roam-db-autosync-mode)
-  (nto/leader
-	"n" '(:ignore t :wk "notes")
-	"nI" '(org-id-get-create :wk "gen ID")
-	"na" '(:ignore t :wk "alias")
-	"naa" '(org-roam-alias-add :wk "add")
-	"nar" '(org-roam-alias-remove :wk "remove")
-	"nt" '(:ignore t :wk "tag")
-	"nta" '(org-roam-tag-add :wk "add")
-	"ntr" '(org-roam-tag-remove :wk "remove")
-	"nr" '(:ignore t :wk "refs")
-	"ns" '(:ignore t :wk "filter by tags")
-	"nsa" '(nto/org-roam-node-filter-by-tags-any :wk "any tags")
-	"nsA" '(nto/org-roam-node-filter-by-tags-all :wk "all tags")
-	"nd" '(:ignore t :wk "date")
-	"ndt" '(org-roam-dailies-goto-today :wk "today")
-	"ndT" '(org-roam-dailies-goto-tomorrow :wk "tomorrow")
-	"ndy" '(org-roam-dailies-goto-yesterday :wk "yesterday")
-	"ndp" '(org-roam-dailies-goto-previous-note :wk "previous")
-	"ndn" '(org-roam-dailies-goto-next-note :wk "next")
-	"ndc" '(org-roam-dailies-goto-date :wk "calendar")
-	"ndd" '(org-roam-dailies-find-directory :wk "dired")
-	"nra" '(org-roam-ref-add :wk "add")
-	"nrr" '(org-roam-ref-remove :wk "remove")
-	"ni" '(org-roam-node-insert :wk "link")
-	"nb" '(org-roam-buffer-toggle :wk "toggle buffer")
-	"nf" '(org-roam-node-find :wk "new node"))
-  :custom
-  (org-roam-directory (expand-file-name "roam" org-directory))
-  (org-roam-db-location (expand-file-name "db/org-roam.db" org-directory))
-  (org-roam-dailies-directory "daily/")
-  :config
-  (org-roam-setup))
-
-(use-package org-roam-ui
-  :after org-roam
-  :init
-  (setq org-roam-ui-sync-theme t
-		org-roam-ui-follow t
-		org-roam-ui-update-on-save t
-		ort-roam-ui-open-on-start nil))
-
-(use-package consult-org-roam
-  :after org-roam
-  :diminish consult-org-roam-mode
-  :init
-  (require 'consult-org-roam)
-  (consult-org-roam-mode 1)
-  (nto/leader
-	"nc" '(:ignore t :wk "consult")
-	"ncf" '(consult-org-roam-file-find :wk "find")
-	"ncb" '(consult-org-roam-backlinks :wk "backlinks")
-	"ncl" '(consult-org-roam-forward-links :wk "forward links")
-	"ncs" '(consult-org-roam-search :wk "search"))
-  :custom
-  (consult-org-roam-grep-func #'consult-ripgrep)
-  (consult-org-roam-buffer-after-buffers t))
-
 (use-package citar
   :no-require
   :custom
@@ -176,13 +92,13 @@
   (add-hook 'find-file-hook #'denote-link-buttonize-buffer)
 
   (nto/leader
-	"d" '(:ignore t :wk "denote")
-	"df" '(denote :wk "find")
-	"dd" '(list-denote :wk "dired")
-	"dr" '(denote-rename-file :wk "rename")
-	"di" '(denote-link-or-create :wk "link")
-	"db" '(denote-backlink :wk "backlink")
-	"dj" '(denote-journal-extras-new-entry :wk "journal")
+	"n" '(:ignore t :wk "denote")
+	"nf" '(denote-open-or-create :wk "find")
+	"nd" '(list-denote :wk "dired")
+	"nr" '(denote-rename-file :wk "rename")
+	"ni" '(denote-link-or-create :wk "link")
+	"nb" '(denote-backlink :wk "backlink")
+	"nj" '(denote-journal-extras-new-entry :wk "journal")
 ;;	"dq" '(denote-org-dblock-insert-links :wk "query") need further reading on this feature
 	))
 
@@ -205,29 +121,29 @@
   (denote-explore-network-filename "denote-network")
   :init
   (nto/leader
-	"dJ" '(:ignore t :wk "janitor")
-	"dJd" '(denote-explore-identify-duplicate-notes :wk "duplicate")
-	"dJz" '(denote-explore-zero-keywords :wk "zero keywords")
-	"dJs" '(denote-explore-single-keywords :wk "single keywords")
-	"dJS" '(denote-explore-sort-keywords :wk "sort keywords")
-	"dJr" '(denote-explore-rename-keywords :wk "rename keywords")
+	"nJ" '(:ignore t :wk "janitor")
+	"nJd" '(denote-explore-identify-duplicate-notes :wk "duplicate")
+	"nJz" '(denote-explore-zero-keywords :wk "zero keywords")
+	"nJs" '(denote-explore-single-keywords :wk "single keywords")
+	"nJS" '(denote-explore-sort-keywords :wk "sort keywords")
+	"nJr" '(denote-explore-rename-keywords :wk "rename keywords")
 
-	"de" '(:ignore t :wk "explore")
-	"den" '(denote-explore-network :wk "network")
-	"dei" '(denote-explore-isolated-notes :wk "isolated")
-	"der" '(denote-explore-network-regenerate :wk "regenerate")
-	"deb" '(denote-explore-degree-barchart :wk "degree chart")
+	"ne" '(:ignore t :wk "explore")
+	"nen" '(denote-explore-network :wk "network")
+	"nei" '(denote-explore-isolated-notes :wk "isolated")
+	"ner" '(denote-explore-network-regenerate :wk "regenerate")
+	"neb" '(denote-explore-degree-barchart :wk "degree chart")
 
-	"ds" '(:ignore t :wk "statistics")
-	"dsc" '(denote-explore-count-notes :wk "count notes")
-	"dsC" '(denote-explore-count-keywords :wk "keywords notes")
-	"dsb" '(denote-explore-keywords-barchart :wk "keywords chart")
-	"dsx" '(denote-explore-extensions-barchart :wk "extensions chart")
-	"dsB" '(denote-explore-degree-barchart :wk "degree chart")
+	"ns" '(:ignore t :wk "statistics")
+	"nsc" '(denote-explore-count-notes :wk "count notes")
+	"nsC" '(denote-explore-count-keywords :wk "keywords notes")
+	"nsb" '(denote-explore-keywords-barchart :wk "keywords chart")
+	"nsx" '(denote-explore-extensions-barchart :wk "extensions chart")
+	"nsB" '(denote-explore-degree-barchart :wk "degree chart")
 
-	"dw" '(:ignore t  :wk "walk")
-	"dwr" '(denote-explore-random-note :wk "note")
-	"dwr" '(denote-explore-random-link :wk "link")
-	"dwr" '(denote-explore-random-keyword :wk "keyword")))
+	"nw" '(:ignore t  :wk "walk")
+	"nwr" '(denote-explore-random-note :wk "note")
+	"nwr" '(denote-explore-random-link :wk "link")
+	"nwr" '(denote-explore-random-keyword :wk "keyword")))
 
 (provide 'init-org)

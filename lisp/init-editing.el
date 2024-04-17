@@ -75,6 +75,10 @@ of delete the previous word."
       (kbd "C-n")   #'evil-multiedit-next
       (kbd "C-p")   #'evil-multiedit-prev)))
 
+(use-package evil-commentary
+  :after evil
+  :config (evil-commentary-mode +1))
+
 (use-package evil-surround
   :after general
   :general

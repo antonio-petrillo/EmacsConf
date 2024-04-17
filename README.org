@@ -1,2 +1,2 @@
-* Config
-My vanilla emacs config for 2024.
+* Config
+My vanilla emacs config for 2024.
