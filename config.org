@@ -1967,6 +1967,11 @@ For now I don't plan to use LSP with zig.
 #+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
 (use-package zig-mode)
 #+end_src
+**** Python lang
+For occasional scripting
+#+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
+(use-package python-mode)
+#+end_src
 *** End
 Module ~init-prog.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes

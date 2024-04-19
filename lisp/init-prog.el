@@ -29,4 +29,6 @@
 
 (use-package zig-mode)
 
+(use-package python-mode)
+
 (provide 'init-prog)
