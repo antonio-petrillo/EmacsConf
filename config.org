@@ -1904,7 +1904,7 @@ Section for os specific settings.
 Setup home directory on windows, for now it is hardcoded.
 #+begin_src emacs-lisp :tangle "lisp/init-os.el" :mkdirp yes
 (when (eq system-type 'windows-nt)
-    (setq default-directory "C:/Users/antof/"))
+    (setq default-directory "C:/Users/Antonio Petrillo/"))
 #+end_src
 
 *** GNU/Linux

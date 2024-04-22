@@ -1,5 +1,5 @@
 (when (eq system-type 'windows-nt)
-    (setq default-directory "C:/Users/antof/"))
+    (setq default-directory "C:/Users/Antonio Petrillo/"))
 
 (when (eq system-type 'darwin)
   (setenv "PATH"
