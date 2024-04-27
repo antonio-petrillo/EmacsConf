@@ -20,6 +20,15 @@
   (nto/leader
 	"tm" '(hide-mode-line-mode :wk "modeline")))
 
+(use-package doom-modeline
+  :after exwm
+  :hook (after-init . doom-modeline-mode)
+  :config
+  (setq doom-modeline-support-imenu t)
+  (setq doom-modeline-height 25)
+  (setq doom-modeline-bar-width 4)
+  (setq doom-modeline-lsp-icon nil))
+
 (use-package all-the-icons
   :if (display-graphic-p))
 

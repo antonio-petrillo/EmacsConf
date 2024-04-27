@@ -59,3 +59,4 @@
 (require 'init-os)
 (require 'init-prog)
 (require 'init-app)
+(require 'init-exwm)

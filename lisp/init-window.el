@@ -49,6 +49,8 @@
 
 (use-package ace-window
   :after general
+  :config
+  (setq aw-scope 'frame)
   :init
   (setq aw-dispatch-always nil)
   (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
