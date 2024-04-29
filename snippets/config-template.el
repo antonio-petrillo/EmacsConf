@@ -2,7 +2,7 @@
 	  user-mail-address "antonio.petrillo4@studenti.unina.it")
 
 (setq default-theme 'modus-vivendi)
-(setq selected-theme 'tron-legacy)
+(setq selected-theme 'modus-operandi)
 
 (setq selected-font "Source Code Pro")
 
