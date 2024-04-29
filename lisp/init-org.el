@@ -44,6 +44,9 @@
 
 (use-package org-modern
   :after org
+  :defer t
+  :custom
+  (org-modern-table nil)
   :init
   (add-hook 'org-mode-hook #'org-modern-mode))
 
