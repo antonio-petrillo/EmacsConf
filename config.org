@@ -1283,7 +1283,6 @@ Self explanatory, I also add a keybinding to toggle this option on the fly.
 *** Doom modeline
 #+begin_src emacs-lisp :tangle "lisp/init-ui.el" :mkdirp yes
 (use-package doom-modeline
-  :after exwm
   :hook (after-init . doom-modeline-mode)
   :config
   (setq doom-modeline-support-imenu t)
@@ -1921,7 +1920,7 @@ Section for os specific settings.
 Setup home directory on windows, for now it is hardcoded.
 #+begin_src emacs-lisp :tangle "lisp/init-os.el" :mkdirp yes
 (when (eq system-type 'windows-nt)
-    (setq default-directory "C:/Users/Antonio Petrillo/"))
+    (setq default-directory windows-default-directory))
 #+end_src
 
 *** GNU/Linux
