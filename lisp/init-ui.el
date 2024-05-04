@@ -21,7 +21,6 @@
 	"tm" '(hide-mode-line-mode :wk "modeline")))
 
 (use-package doom-modeline
-  :after exwm
   :hook (after-init . doom-modeline-mode)
   :config
   (setq doom-modeline-support-imenu t)

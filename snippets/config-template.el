@@ -4,6 +4,8 @@
 (setq default-theme 'modus-vivendi)
 (setq selected-theme 'modus-operandi)
 
+(setq windows-default-directory "C:/Users/Antonio Petrillo/")
+
 (setq selected-font "Source Code Pro")
 
 (setq org-directory "~/Documents/Org")
