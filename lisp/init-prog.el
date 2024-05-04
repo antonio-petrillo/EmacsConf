@@ -31,4 +31,6 @@
 
 (use-package python-mode)
 
+(use-package lua-mode)
+
 (provide 'init-prog)
