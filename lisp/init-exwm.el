@@ -1,4 +1,5 @@
 (use-package exwm
+  :if (eq system-type 'gnu/linux)
   :config
   ;; make more room for x11 windows
   (menu-bar-mode -1)
@@ -101,11 +102,13 @@
 				(start-process "setxkbmap" nil "/usr/bin/setxkbmap" "us" "-option" "ctrl:nocaps")))))
 
 (use-package exwm-modeline
+  :if (eq system-type 'gnu/linux)
   :after exwm
   :init
   (add-hook 'exwm-init-hook #'exwm-modeline-mode))
 
 (use-package counsel
+  :if (eq system-type 'gnu/linux)
   :after exwm
   :init
   (exwm-input-set-key (kbd "s-d") #'counsel-linux-app))
