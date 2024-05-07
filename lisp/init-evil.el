@@ -130,6 +130,42 @@
   :config
   (global-evil-visualstar-mode))
 
+(use-package evil-matchit
+  :after evil
+  :config
+  (global-evil-matchit-mode 1)
+  (setq evilmi-may-jump-by-percentage nil))
+
+(use-package exato
+  :after evil
+  :init
+  (require 'exato)) ;; autoloads don't work properly
+
+(use-package evil-args
+  :after evil
+  :config
+  (setq evil-args-delimiters '(" " "," ";"))
+  :init
+  (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
+  (define-key evil-outer-text-objects-map "a" 'evil-inner-arg)
+  (define-key evil-normal-state-map "L" 'evil-forward-arg)
+  (define-key evil-normal-state-map "H" 'evil-backward-arg)
+  (define-key evil-motion-state-map "L" 'evil-forward-arg)
+  (define-key evil-motion-state-map "H" 'evil-backward-arg)
+  (define-key evil-normal-state-map "K" 'evil-jump-out-args))
+
+(use-package evil-exchange
+  :after evil
+  :init
+  (setq evil-exchange-key (kbd "zx"))
+  (setq evil-exchange-cancel-key (kbd "zX"))
+  (evil-exchange-install))
+
+(use-package evil-commentary
+  :after evil
+  :config
+  (evil-commentary-mode))
+
 (use-package evil-numbers
   :after evil
   :config
