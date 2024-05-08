@@ -122,17 +122,17 @@
 
 (use-package evil-lion
   :after evil
-  :config
+  :init
   (evil-lion-mode))
 
 (use-package evil-visualstar
   :after evil
-  :config
+  :init
   (global-evil-visualstar-mode))
 
 (use-package evil-matchit
   :after evil
-  :config
+  :init
   (global-evil-matchit-mode 1)
   (setq evilmi-may-jump-by-percentage nil))
 
@@ -148,11 +148,13 @@
   :init
   (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
   (define-key evil-outer-text-objects-map "a" 'evil-inner-arg)
-  (define-key evil-normal-state-map "L" 'evil-forward-arg)
-  (define-key evil-normal-state-map "H" 'evil-backward-arg)
-  (define-key evil-motion-state-map "L" 'evil-forward-arg)
-  (define-key evil-motion-state-map "H" 'evil-backward-arg)
-  (define-key evil-normal-state-map "K" 'evil-jump-out-args))
+  ;; evil-snipe-f is better thatn this
+  ;; (define-key evil-normal-state-map "L" 'evil-forward-arg)
+  ;; (define-key evil-normal-state-map "H" 'evil-backward-arg)
+  ;; (define-key evil-motion-state-map "L" 'evil-forward-arg)
+  ;; (define-key evil-motion-state-map "H" 'evil-backward-arg)
+  ;; (define-key evil-normal-state-map "K" 'evil-jump-out-args)
+  )
 
 (use-package evil-exchange
   :after evil
@@ -163,12 +165,12 @@
 
 (use-package evil-commentary
   :after evil
-  :config
+  :init
   (evil-commentary-mode))
 
 (use-package evil-numbers
   :after evil
-  :config
+  :init
   (evil-define-key '(normal visual) 'global (kbd "+") 'evil-numbers/inc-at-pt)
   (evil-define-key '(normal visual) 'global (kbd "_") 'evil-numbers/dec-at-pt)
   (evil-define-key '(normal visual) 'global (kbd "C-+") 'evil-numbers/inc-at-pt-incremental)
