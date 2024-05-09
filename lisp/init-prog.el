@@ -33,4 +33,6 @@
 
 (use-package lua-mode)
 
+(use-package lox-mode)
+
 (provide 'init-prog)

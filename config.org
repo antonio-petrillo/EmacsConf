@@ -1993,6 +1993,10 @@ For occasional scripting
 #+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
 (use-package lua-mode)
 #+end_src
+**** Lox lang
+#+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
+(use-package lox-mode)
+#+end_src
 
 *** End
 Module ~init-prog.el~ ends here
