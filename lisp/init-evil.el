@@ -91,17 +91,18 @@
 	"f" 'evil-snipe-f
 	"F" 'evil-snipe-F)
 
-  (evil-define-key 'operator evil-snipe-local-mode-map
-	"z" 'evil-snipe-s
-	"Z" 'evil-snipe-S
-	"x" 'evil-snipe-x
-	"X" 'evil-snipe-X)
+  ;; (evil-define-key 'operator evil-snipe-local-mode-map
+  ;; 	"z" 'evil-snipe-s
+  ;; 	"Z" 'evil-snipe-S
+  ;; 	"x" 'evil-snipe-x
+  ;; 	"X" 'evil-snipe-X)
 
   (evil-define-key 'motion evil-snipe-override-local-mode-map
 	"f" 'evil-snipe-f
 	"F" 'evil-snipe-F
-	"t" 'evil-snipe-t
-	"T" 'evil-snipe-T)
+	;; "t" 'evil-snipe-t
+	;; "T" 'evil-snipe-T
+	)
 
   (when evil-snipe-override-evil-repeat-keys
 	(evil-define-key 'motion map
@@ -155,6 +156,24 @@
   ;; (define-key evil-motion-state-map "H" 'evil-backward-arg)
   ;; (define-key evil-normal-state-map "K" 'evil-jump-out-args)
   )
+
+(defmacro nto/build-url (url &rest params)
+  `(format ,url ,@params))
+
+(defun nto/web-search ()
+  (interactive)
+  (let ((base-url "https://google.com/search?q=%s")
+		(param (if (region-active-p)
+				   (buffer-substring-no-properties (region-beginning) (region-end))
+				 (read-from-minibuffer "Search: "))))
+	(browse-url (nto/build-url base-url param))))
+
+(with-eval-after-load 'evil
+  (evil-define-key 'visual 'global
+	(kbd "gs") #'nto/web-search)
+
+  (evil-define-key 'normal 'global
+	(kbd "gs") #'nto/web-search))
 
 (use-package evil-exchange
   :after evil
