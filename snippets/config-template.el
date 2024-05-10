@@ -7,6 +7,7 @@
 (setq windows-default-directory "C:/Users/Antonio Petrillo/")
 
 (setq selected-font "Source Code Pro")
+(setq my-font-height 200)
 
 (setq org-directory "~/Documents/Org")
 
