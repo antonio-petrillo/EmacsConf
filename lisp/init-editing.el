@@ -107,17 +107,6 @@ of delete the previous word."
   :config
   (global-undo-fu-session-mode))
 
-(use-package string-inflection
-  :after evil
-  :init
-  (nto/local-leader
-	:keymaps 'prog-mode-map
-	"i" '(string-inflection-all-cycle :wk "inflection (all)")
-	"k" '(string-inflection-kebab-case :wk "inflection (lisp)")
-	"j" '(string-inflection-java-style-cycle :wk "inflection (java)")
-	"_" '(string-inflection-underscore :wk "inflection (c)")
-	"u" '(string-inflection-upcase :wk "inflection (upcase)")))
-
 (use-package emacs
   :hook (prog-mode . hs-minor-mode)
   :init
@@ -152,7 +141,6 @@ of delete the previous word."
   (add-to-list 'rotate-text-words '("len" "length" "size"))
   (add-to-list 'rotate-text-words '("int" "long"))
   (add-to-list 'rotate-text-words '("float" "double"))
-  (add-to-list 'rotate-text-words '("char" "char*"))
   (add-to-list 'rotate-text-words '("true" "false"))
   (add-to-list 'rotate-text-words '("def" "defn" "fn" "defun"))
   (add-to-list 'rotate-text-words '("fun" "func" "function"))

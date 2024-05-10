@@ -482,7 +482,7 @@ Allow =*= and =#= to search also for visual region.
 #+end_src
 
 *** Evil matchit
-Add =%= motion to match text argument.
+Add =%= motion to jump between matching arguments.
 #+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
 (use-package evil-matchit
   :after evil
@@ -500,25 +500,6 @@ Add =x= motion to match xml tags, works also for html (should work also for jsx)
   (require 'exato)) ;; autoloads don't work properly
 #+end_src
 
-*** Evil-args
-Add evil motion fot delimited arguments, use =a= for =args=.
-#+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
-(use-package evil-args
-  :after evil
-  :config
-  (setq evil-args-delimiters '(" " "," ";"))
-  :init
-  (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
-  (define-key evil-outer-text-objects-map "a" 'evil-inner-arg)
-  ;; evil-snipe-f is better thatn this
-  ;; (define-key evil-normal-state-map "L" 'evil-forward-arg)
-  ;; (define-key evil-normal-state-map "H" 'evil-backward-arg)
-  ;; (define-key evil-motion-state-map "L" 'evil-forward-arg)
-  ;; (define-key evil-motion-state-map "H" 'evil-backward-arg)
-  ;; (define-key evil-normal-state-map "K" 'evil-jump-out-args)
-  )
-#+end_src
-
 *** My evil movements
 #+begin_src emacs-lisp :tangle "lisp/init-evil.el" :mkdirp yes
 (defmacro nto/build-url (url &rest params)
@@ -533,11 +514,12 @@ Add evil motion fot delimited arguments, use =a= for =args=.
 	(browse-url (nto/build-url base-url param))))
 
 (with-eval-after-load 'evil
-  (evil-define-key 'visual 'global
-	(kbd "gs") #'nto/web-search)
-
-  (evil-define-key 'normal 'global
-	(kbd "gs") #'nto/web-search))
+  (evil-define-key '(normal visual) 'global
+	(kbd "gs") #'nto/web-search
+	(kbd "ga") #'beginning-of-line
+	(kbd "ge") #'end-of-line
+	(kbd "gJ") #'avy-goto-char-timer
+	(kbd "gE") #'avy-goto-end-of-line))
 #+end_src
 *** Evil exchange
 Add =gx= motion to exchange matched motions.
@@ -566,9 +548,7 @@ Increase number at point, work on base 2, 8, 10, 16 and more.
   :after evil
   :init
   (evil-define-key '(normal visual) 'global (kbd "+") 'evil-numbers/inc-at-pt)
-  (evil-define-key '(normal visual) 'global (kbd "_") 'evil-numbers/dec-at-pt)
-  (evil-define-key '(normal visual) 'global (kbd "C-+") 'evil-numbers/inc-at-pt-incremental)
-  (evil-define-key '(normal visual) 'global (kbd "C-_") 'evil-numbers/dec-at-pt-incremental))
+  (evil-define-key '(normal visual) 'global (kbd "_") 'evil-numbers/dec-at-pt))
 #+end_src
 
 *** End
@@ -1036,20 +1016,6 @@ Evil don't have a proper undo system so I need to provide one, *undo-fu* is just
 #+end_src
 
 **** TODO Add *undo-tree* configuration.
-*** String inflection
-This package define a couple of function to cycle on the style of a word, with style I mean that it cycle between /CamelCase/, /kebab-case/, /snake_case/ and so on.
-#+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
-(use-package string-inflection
-  :after evil
-  :init
-  (nto/local-leader
-	:keymaps 'prog-mode-map
-	"i" '(string-inflection-all-cycle :wk "inflection (all)")
-	"k" '(string-inflection-kebab-case :wk "inflection (lisp)")
-	"j" '(string-inflection-java-style-cycle :wk "inflection (java)")
-	"_" '(string-inflection-underscore :wk "inflection (c)")
-	"u" '(string-inflection-upcase :wk "inflection (upcase)")))
-#+end_src
 
 *** Enable code folding
 I've tried a couple of packages for this purpose but this is the one that work well for me, furthermore it is built-in.
@@ -1101,7 +1067,6 @@ Cycle word at point between a list of candidates.
   (add-to-list 'rotate-text-words '("len" "length" "size"))
   (add-to-list 'rotate-text-words '("int" "long"))
   (add-to-list 'rotate-text-words '("float" "double"))
-  (add-to-list 'rotate-text-words '("char" "char*"))
   (add-to-list 'rotate-text-words '("true" "false"))
   (add-to-list 'rotate-text-words '("def" "defn" "fn" "defun"))
   (add-to-list 'rotate-text-words '("fun" "func" "function"))
@@ -1161,7 +1126,6 @@ Most of this configuration is taken from the [[https://github.com/minad/vertico]
           (consult-location)
           (imenu buffer)
           (library reverse indexed)
-          (org-roam-node reverse indexed)
           (t reverse)))
   (setq vertico-multiform-commands
         '(("flyspell-correct-*" grid reverse)
@@ -1213,23 +1177,121 @@ For example, I want to search for src_emacs-lisp{extended-execute-command}, with
 
 *** Completion at point popup 
 A vscode like completion at point.
+**** Corfu
 #+begin_src emacs-lisp :tangle "lisp/init-completion.el" :mkdirp yes
-(use-package company
-  :init
-  (add-hook 'after-init-hook 'global-company-mode)
-  :config
-  (define-key company-active-map (kbd "C-j") 'company-select-next)
-  (define-key company-active-map (kbd "C-k") 'company-select-previous))
+(when (display-graphic-p)
+  (use-package corfu
+    :straight (corfu :files (:defaults "extensions/*")
+                     :includes (corfu-popupinfo corfu-history))
+    :custom
+    (corfu-cycle t)
+    (corfu-auto t)
+    (corfu-scroll-margin 5)
+    :bind
+    (:map corfu-map
+          ("C-j" . corfu-next)
+          ("C-k" . corfu-previous)
+          ("M-d" . corfu-popupinfo-toggle)
+          ("TAB" . corfu-next)
+          ([tab] . corfu-next)
+          ("S-TAB" . corfu-previous)
+          ([backtab] . corfu-previous))
+    :config
+    (setq corfu-auto t
+          corfu-quit-no-match 'separator)
+    :init
+    (global-corfu-mode)
+    (corfu-popupinfo-mode)))
 #+end_src
-
+**** Corfu terminal
+#+begin_src emacs-lisp :tangle "lisp/init-completion.el" :mkdirp yes
+(unless (display-graphic-p)
+  (use-package corfu-terminal
+    :when (eq system-type 'gnu/linux)
+    :straight (corfu-terminal :type git
+                              :repo "https://codeberg.org/akib/emacs-corfu-terminal.git")
+    :custom
+    (corfu-cycle t)
+    (corfu-auto t)
+    (corfu-scroll-margin 5)
+    :bind
+    (:map corfu-map
+          ("C-j" . corfu-next)
+          ("C-k" . corfu-previous)
+          ("TAB" . corfu-next)
+          ([tab] . corfu-next)
+          ("S-TAB" . corfu-previous)
+          ([backtab] . corfu-previous))
+    :config
+    (setq corfu-auto t
+          corfu-quit-no-match 'separator)
+    :init
+    (corfu-terminal-mode +1)))
+#+end_src
+***** Corfu terminal doc
+#+begin_src emacs-lisp :tangle "lisp/init-completion.el" :mkdirp yes
+(unless (display-graphic-p)
+  (use-package corfu-doc-terminal
+	:after corfu-terminal
+    :when (eq system-type 'gnu/linux)
+    :straight (corfu-doc-terminal :type git
+								  :repo "https://codeberg.org/akib/emacs-corfu-doc-terminal.git")
+    :init
+    (corfu-doc-terminal-mode +1)))
+#+end_src
+**** Cape
+Extension CAPF for corfu.
+#+begin_src emacs-lisp :tangle "lisp/init-completion.el"  :mkdirp yes
+(use-package cape
+  ;; Bind dedicated completion commands
+  ;; Alternative prefix keys: C-c p, M-p, M-+, ...
+  :after corfu
+  :bind (("C-c c p" . completion-at-point) ;; capf
+         ("C-c c t" . complete-tag)        ;; etags
+         ("C-c c d" . cape-dabbrev)        ;; or dabbrev-completion
+         ("C-c c h" . cape-history)
+         ("C-c c f" . cape-file)
+         ("C-c c k" . cape-keyword)
+         ("C-c c s" . cape-elisp-symbol)
+         ("C-c c e" . cape-elisp-block)
+         ("C-c c a" . cape-abbrev)
+         ("C-c c l" . cape-line)
+         ("C-c c w" . cape-dict)
+         ("C-c c :" . cape-emoji)
+         ("C-c c \\" . cape-tex)
+         ("C-c c _" . cape-tex)
+         ("C-c c ^" . cape-tex)
+         ("C-c c &" . cape-sgml)
+         ("C-c c r" . cape-rfc1345))
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-elisp-block)
+  ;;(add-to-list 'completion-at-point-functions #'cape-history)
+  ;;(add-to-list 'completion-at-point-functions #'cape-keyword)
+  ;;(add-to-list 'completion-at-point-functions #'cape-tex)
+  ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
+  ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
+  ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
+  (add-to-list 'completion-at-point-functions #'cape-dict)
+  ;;(add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
+  ;;(add-to-list 'completion-at-point-functions #'cape-line)
+)
+#+end_src
+**** Add nerd icons for corfu
+#+begin_src emacs-lisp :tangle "lisp/init-completion.el" :mkdirp yes
+(use-package nerd-icons-corfu
+  :after corfu
+  :init
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+#+end_src
 *** Snippets
 I use yasnippet to generate and use template, divided by mode.
 #+begin_src emacs-lisp :tangle "lisp/init-completion.el"  :mkdirp yes
 (use-package yasnippet
   :init
-  (yas-global-mode 1)
-  :config
-  (setq yas-snippet-dirs `(,(concat user-emacs-directory "snippets"))))
+  (setq yas-snippet-dirs `(,(concat user-emacs-directory "snippets")))
+  (yas-global-mode 1))
 #+end_src
 
 *** End
@@ -1949,7 +2011,7 @@ Read about strokes [[https://karthinks.com/software/different-strokes-for-differ
 See the [[https://emacsredux.com/blog/2022/06/03/enable-mouse-support-in-terminal-emacs/][this]] article by *bbatsov*.
 #+begin_src emacs-lisp :tangle "lisp/init-mouse.el" :mkdirp yes
 (unless (display-graphic-p)
-  (if (eq system-type 'gnu/linu)
+  (if (eq system-type 'gnu/linux)
 	  (gpm-mouse-mode 1)
 	(xterm-mouse-mode 1)))
 #+end_src

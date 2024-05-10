@@ -142,21 +142,6 @@
   :init
   (require 'exato)) ;; autoloads don't work properly
 
-(use-package evil-args
-  :after evil
-  :config
-  (setq evil-args-delimiters '(" " "," ";"))
-  :init
-  (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
-  (define-key evil-outer-text-objects-map "a" 'evil-inner-arg)
-  ;; evil-snipe-f is better thatn this
-  ;; (define-key evil-normal-state-map "L" 'evil-forward-arg)
-  ;; (define-key evil-normal-state-map "H" 'evil-backward-arg)
-  ;; (define-key evil-motion-state-map "L" 'evil-forward-arg)
-  ;; (define-key evil-motion-state-map "H" 'evil-backward-arg)
-  ;; (define-key evil-normal-state-map "K" 'evil-jump-out-args)
-  )
-
 (defmacro nto/build-url (url &rest params)
   `(format ,url ,@params))
 
@@ -169,11 +154,12 @@
 	(browse-url (nto/build-url base-url param))))
 
 (with-eval-after-load 'evil
-  (evil-define-key 'visual 'global
-	(kbd "gs") #'nto/web-search)
-
-  (evil-define-key 'normal 'global
-	(kbd "gs") #'nto/web-search))
+  (evil-define-key '(normal visual) 'global
+	(kbd "gs") #'nto/web-search
+	(kbd "ga") #'beginning-of-line
+	(kbd "ge") #'end-of-line
+	(kbd "gJ") #'avy-goto-char-timer
+	(kbd "gE") #'avy-goto-end-of-line))
 
 (use-package evil-exchange
   :after evil
@@ -191,8 +177,6 @@
   :after evil
   :init
   (evil-define-key '(normal visual) 'global (kbd "+") 'evil-numbers/inc-at-pt)
-  (evil-define-key '(normal visual) 'global (kbd "_") 'evil-numbers/dec-at-pt)
-  (evil-define-key '(normal visual) 'global (kbd "C-+") 'evil-numbers/inc-at-pt-incremental)
-  (evil-define-key '(normal visual) 'global (kbd "C-_") 'evil-numbers/dec-at-pt-incremental))
+  (evil-define-key '(normal visual) 'global (kbd "_") 'evil-numbers/dec-at-pt))
 
 (provide 'init-evil)
