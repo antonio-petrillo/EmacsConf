@@ -1,8 +1,3 @@
-(defmacro nto/build-url (url &rest params)
-  "Used to build and complete urls.
-Just a wrapper for the `format' function."
-  `(format ,url ,@params))
-
 (with-eval-after-load 'general
   (when (display-graphic-p)
 	(defun nto/google-search ()
