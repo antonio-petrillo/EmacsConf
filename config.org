@@ -154,6 +154,7 @@ Each ~require~ load a different module.
 (require 'init-buffer)
 (require 'init-editing)
 (require 'init-completion)
+(require 'init-search)
 (require 'init-dired)
 (require 'init-ui)
 (require 'init-writing)
@@ -170,7 +171,9 @@ Each ~require~ load a different module.
 (require 'init-os)
 (require 'init-prog)
 (require 'init-app)
-(when (eq system-type 'gnu/linux) (require 'init-exwm))
+
+(when (eq system-type 'gnu/linux)
+  (require 'init-exwm))
 #+end_src
 
 * Modules
@@ -1096,6 +1099,21 @@ I.E. I need to provide one, like =cljfmt= for clojure.
 Module ~init-editing.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-editing.el" :mkdirp yes
 (provide 'init-editing)
+#+end_src
+
+** Module ~init-search.el~
+*** Deadgrep
+Nice frontend for =ripgrep=
+#+begin_src emacs-lisp :tangle "lisp/init-search.el" :mkdirp yes
+(use-package deadgrep
+  :init
+  (global-set-key (kbd "<f5>") #'deadgrep))
+#+end_src
+
+*** End
+Module ~init-search.el~ ends here
+#+begin_src emacs-lisp :tangle "lisp/init-search.el" :mkdirp yes
+(provide 'init-search)
 #+end_src
 
 ** Module ~init-completion.el~
@@ -2075,7 +2093,7 @@ Module ~init-os.el~ ends here
 #+end_src
 
 ** Module ~init-prog.el~
-*** Setup for treesitter
+*** TODO Setup for treesitter
 #+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
 (use-package treesit-auto
   :custom
@@ -2084,26 +2102,7 @@ Module ~init-os.el~ ends here
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 #+end_src
-*** Setup for lsp
-#+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
-(defun nto/lsp-setup ()
-  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-  (lsp-headerline-breadcrumb-mode))
-
-(use-package lsp-mode
-  :hook (lsp-mode . nto/lsp-setup)
-  :init
-  (setq lsp-keymap-prefix "C-c l")
-  ;; (general-nmap "SPC c" (general-simulate-key "C-c l"))
-  :config
-  (lsp-enable-which-key-integration t)
-  :commands
-  (lsp lsp-deferred))
-
-(use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode)
-  :commands lsp-ui-mode)
-#+end_src
+*** TODO Setup for eglot
 *** End
 *** Language support
 **** Go lang
