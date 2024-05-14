@@ -1187,6 +1187,7 @@ A vscode like completion at point.
     (corfu-cycle t)
     (corfu-auto t)
     (corfu-scroll-margin 5)
+	(corfu-quit-no-match 'separator)
     :bind
     (:map corfu-map
           ("C-j" . corfu-next)
@@ -1196,9 +1197,9 @@ A vscode like completion at point.
           ([tab] . corfu-next)
           ("S-TAB" . corfu-previous)
           ([backtab] . corfu-previous))
-    :config
-    (setq corfu-auto t
-          corfu-quit-no-match 'separator)
+    ;; :config
+    ;; (setq corfu-auto t
+    ;;       corfu-quit-no-match 'separator)
     :init
     (global-corfu-mode)
     (corfu-popupinfo-mode)))
@@ -2205,7 +2206,7 @@ Module ~init-app.el~ ends here
 (provide 'init-app)
 #+end_src
 
-** Module ~init-exwm.el~
+*~/.emacs.d/~/.emacs.d/* Module ~init-exwm.el~
 I'm givin another shot to exwm, the concept is really awesome but it always fell a little bit clumsy.
 *** Install exwm
 #+begin_src emacs-lisp :tangle "lisp/init-exwm.el" :mkdirp yes
