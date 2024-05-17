@@ -60,6 +60,7 @@
     (corfu-cycle t)
     (corfu-auto t)
     (corfu-scroll-margin 5)
+	(corfu-quit-no-match 'separator)
     :bind
     (:map corfu-map
           ("C-j" . corfu-next)
@@ -69,9 +70,9 @@
           ([tab] . corfu-next)
           ("S-TAB" . corfu-previous)
           ([backtab] . corfu-previous))
-    :config
-    (setq corfu-auto t
-          corfu-quit-no-match 'separator)
+    ;; :config
+    ;; (setq corfu-auto t
+    ;;       corfu-quit-no-match 'separator)
     :init
     (global-corfu-mode)
     (corfu-popupinfo-mode)))
