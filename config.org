@@ -2134,6 +2134,10 @@ For occasional scripting
 (use-package lox-mode)
 #+end_src
 
+**** Elm language
+#+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
+(use-package elm-mode)
+#+end_src
 *** End
 Module ~init-prog.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes

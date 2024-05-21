@@ -5,24 +5,6 @@
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
-(defun nto/lsp-setup ()
-  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-  (lsp-headerline-breadcrumb-mode))
-
-(use-package lsp-mode
-  :hook (lsp-mode . nto/lsp-setup)
-  :init
-  (setq lsp-keymap-prefix "C-c l")
-  ;; (general-nmap "SPC c" (general-simulate-key "C-c l"))
-  :config
-  (lsp-enable-which-key-integration t)
-  :commands
-  (lsp lsp-deferred))
-
-(use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode)
-  :commands lsp-ui-mode)
-
 (use-package go-mode
   :config
   (add-hook 'go-mode-hook 'lsp-deferred))
@@ -34,5 +16,7 @@
 (use-package lua-mode)
 
 (use-package lox-mode)
+
+(use-package elm-mode)
 
 (provide 'init-prog)

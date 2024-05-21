@@ -43,6 +43,7 @@
 (require 'init-buffer)
 (require 'init-editing)
 (require 'init-completion)
+(require 'init-search)
 (require 'init-dired)
 (require 'init-ui)
 (require 'init-writing)
@@ -59,4 +60,6 @@
 (require 'init-os)
 (require 'init-prog)
 (require 'init-app)
-(when (eq system-type 'gnu/linux) (require 'init-exwm))
+
+(when (eq system-type 'gnu/linux)
+  (require 'init-exwm))
