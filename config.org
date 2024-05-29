@@ -2138,6 +2138,13 @@ For occasional scripting
 #+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
 (use-package elm-mode)
 #+end_src
+
+**** Others
+#+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
+(use-package json-mode)
+(use-package csv-mode)
+(use-package yaml-mode)
+#+end_src
 *** End
 Module ~init-prog.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes

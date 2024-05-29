@@ -19,4 +19,8 @@
 
 (use-package elm-mode)
 
+(use-package json-mode)
+(use-package csv-mode)
+(use-package yaml-mode)
+
 (provide 'init-prog)
