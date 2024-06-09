@@ -2185,6 +2185,13 @@ There is minor bug for now, I need to symlink the treesitter-gleam from repos to
 						:repo "gleam-lang/gleam-mode"
 						:nonrecursive nil))
 #+end_src
+
+**** Just data
+#+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
+(use-package json-mode)
+(use-package csv-mode)
+(use-package yaml-mode)
+#+end_src
 *** End
 Module ~init-prog.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes

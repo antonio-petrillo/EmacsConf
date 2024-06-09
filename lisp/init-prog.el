@@ -55,4 +55,8 @@
 						:repo "gleam-lang/gleam-mode"
 						:nonrecursive nil))
 
+(use-package json-mode)
+(use-package csv-mode)
+(use-package yaml-mode)
+
 (provide 'init-prog)
