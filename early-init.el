@@ -34,11 +34,11 @@
 		  file-name-handler-alist nto/file-name-handler-alist
 		  vc-handled-backends nto/vc-handled-backends)))
 
-(defun nto/avoid-initial-flash-of-light ()
-  (set-face-attribute 'default nil :background "#000000" :foreground "#ffffff")
-  (set-face-attribute 'mode-line nil :background "#000000" :foreground "#ffffff" :box 'unspecified))
+;; (defun nto/avoid-initial-flash-of-light ()
+;;   (set-face-attribute 'default nil :background "#000000" :foreground "#ffffff")
+;;   (set-face-attribute 'mode-line nil :background "#000000" :foreground "#ffffff" :box 'unspecified))
 
-(nto/avoid-initial-flash-of-light)
+;; (nto/avoid-initial-flash-of-light)
 
 (defun nto/set-frame-params()
   (mapc (lambda (target-list)
