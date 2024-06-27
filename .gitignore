@@ -53,3 +53,5 @@ elpa/*
 elpy/*
 dmenu-items
 /tree-sitter/
+/.local/
+*.eln
