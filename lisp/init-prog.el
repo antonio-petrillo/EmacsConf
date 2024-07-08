@@ -47,7 +47,27 @@
 
 (use-package elm-mode)
 
+(add-to-list 'exec-path "~/.opam/default/bin")
 (use-package tuareg)
+
+(use-package dune)
+
+(use-package merlin
+  :config
+  (add-hook 'tuareg-mode-hook #'merlin-mode))
+
+(use-package merlin-eldoc
+  :hook ((tuareg-mode) . merlin-eldoc-setup))
+
+(use-package flycheck-ocaml
+  :config
+  (flycheck-ocaml-setup))
+
+(use-package utop
+  :config
+  (add-hook 'tuareg-mode-hook #'utop-minor-mode))
+
+(use-package ocamlformat)
 
 (use-package gleam-mode
   :straight (gleam-mode :type git
