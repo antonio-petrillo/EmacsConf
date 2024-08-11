@@ -60,17 +60,6 @@ The /hack/ consist in setting the *threshold* to the highest value at startup an
 		  vc-handled-backends nto/vc-handled-backends)))
 #+end_src
 
-** Whitescreen flash on startup
-Here another nice /hack/ to avoid the initial flash on opening emacs, also taken from Protesilaos config.
-#+begin_src emacs-lisp :tangle early-init.el
-
-;; (defun nto/avoid-initial-flash-of-light ()
-;;   (set-face-attribute 'default nil :background "#000000" :foreground "#ffffff")
-;;   (set-face-attribute 'mode-line nil :background "#000000" :foreground "#ffffff" :box 'unspecified))
-
-;; (nto/avoid-initial-flash-of-light)
-#+end_src
-
 ** Setting frame parameters
 Set *initial* & *default* frame parameters, the first is obviously for the first frame, the latter is used on when new frames are created, i.e. on most of the ~C-x 5~ commands.
 #+begin_src emacs-lisp :tangle early-init.el
@@ -147,7 +136,6 @@ Each ~require~ load a different module.
 #+begin_src emacs-lisp :tangle init.el :mkdirp yes
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 
-(require 'init-config)
 (require 'init-core)
 (require 'init-evil)
 (require 'init-help)
@@ -177,48 +165,22 @@ Each ~require~ load a different module.
 #+end_src
 
 * Modules
-** Module ~init-config.el~
-Some config has to change based on the machine I'm using, like font, font-size, theme and etcetera.
-A good thing to do is encapsulate all of them in a config file and load from there.
-*** Load external config
-Here a simple, maybe too simple, way to load config which is not in =emacs-user-directory=.
-#+begin_src emacs-lisp :tangle "lisp/init-config.el" :mkdirp yes
-(setq nto/conf-dir-name ".ntomacs.d/")
-(setq nto/conf-name "config.el")
-
-(defun nto/create-default-config (template-src conf-dest)
-  "Create the config file, with template"
-  (let ((template (expand-file-name template-src user-emacs-directory)))
-	(copy-file template conf-dest)))
-
-(defun nto/load-or-create-config-file()
-  "If `nto/conf-dir-name' directory don't exist create it.
-If `nto/conf-name' file don't exist create it.
-Finally add the file to the load path and `require' it"
-  (let* ((parent-user-emacs-directory (file-name-directory
-									   (directory-file-name user-emacs-directory)))
-		 (conf-dir (concat parent-user-emacs-directory nto/conf-dir-name))
-		 (conf-path (concat conf-dir nto/conf-name)))
-	(unless (file-directory-p conf-dir)
-	  (make-directory conf-dir :parents)) ;; create conf dir if not exist
-	(unless (file-exists-p conf-path)
-	  (nto/create-default-config "snippets/config-template.el" conf-path)) ;; create conf file if not exist
-	(add-to-list 'load-path conf-dir) ;; add to load path
-	(require 'config))) ;; load personal config
-
-(nto/load-or-create-config-file)
-#+end_src
-*** End
-Module ~init-config.el~ ends here
-#+begin_src emacs-lisp :tangle "lisp/init-config.el" :mkdirp yes
-(provide 'init-config)
-#+end_src
-
 ** Module ~init-core.el~
 Configuration that, in my opinion, don't belong to *early-init.el* nor *init.el*..
 *** Modify default keybindings
 Here I inserted the /built-in/ configuration that are not required at startup.
 #+begin_src emacs-lisp :tangle "lisp/init-core.el" :mkdirp yes
+(setq user-full-name "Antonio Petrillo"
+	  user-mail-address "antonio.petrillo4@studenti.unina.it")
+
+(setq default-theme 'modus-vivendi)
+(setq selected-theme 'doom-old-hope)
+
+(setq selected-font "JetBrainsMono")
+(setq my-font-height 80)
+
+(setq org-directory "~/Documents/Org")
+
 (global-unset-key (kbd "C-z"))
 (global-unset-key (kbd "C-j"))
 (global-unset-key (kbd "M-a"))
@@ -340,7 +302,23 @@ I define two leader:
 	:prefix "m"
 	:global-prefix "C-m")
 
-  (nto/leader "?" '(which-key-show-top-level :wk "?"))
+  (nto/leader
+	"?" '(which-key-show-top-level :wk "?")
+	"SPC" '(execute-extended-command :which-key "M-x but faster")
+	"<escape>" '(keyboard-escape-quit :wk "quit")
+	"A" '(:ignore t :wk "Apps")
+	"g" '(:ignore t :wk "git")
+	"j" '(:ignore t :wk "jump")
+	"jc" '(consult-line :wk "consult line")
+	"l" '(:ignore t :wk "language")
+	"o" '(:ignore t :wk "open")
+	"p" '(:ignore t :wk "project")
+	"r" '(:ignore t :wk "rotate")
+	"s" '(:ignore t :wk "search")
+	"t" '(:ignore t :wk "toggle")
+	"u" '(universal-argument :wk "universal"
+
+	)
   (general-evil-setup))
 #+end_src
 
@@ -360,7 +338,7 @@ For a couple of months I sticked to the *default* bindings and learned (not in d
   (setq evil-split-window-below nil)
   (setq evil-vsplit-window-right nil)
   (setq evil-auto-indent nil)
-  (setq undo-limit (* 80 (* 1024 1024))) ;; 80 Mb see, https://tecosaur.github.io/emacs-config/config.html#better-defaults
+  (setq undo-limit (* 100 (* 1024 1024))) ;; 100 Mb see, https://tecosaur.github.io/emacs-config/config.html#better-defaults
   (setq evil-want-fine-undo t)
   (evil-mode 1)
   :config
@@ -402,7 +380,8 @@ Here I set a couple of bindings but most important the top level /next key/ for 
 	"r" '(:ignore t :wk "rotate")
 	"s" '(:ignore t :wk "search")
 	"t" '(:ignore t :wk "toggle")
-	"u" '(universal-argument :wk "universal")))
+	"u" '(universal-argument :wk "universal"
+							 )))
 #+end_src
 
 *** Evil collection
@@ -801,7 +780,9 @@ Every time I forget the next key I can see all possible completion and continue 
    "hK" '(describe-keymap :wk "keymap")
    "hp" '(describe-package :wk "package")
    "ht" '(consult-theme :wk "load theme")
-   "hv" '(describe-variable :wk "variable")))
+   "hv" '(describe-variable :wk "variable")
+   )
+  )
 #+end_src
 
 *** End
@@ -835,7 +816,8 @@ They can be easily swapped for the standard unix version by changing:
 	"fF" '(consult-fd :wk "fd find")
 	"."  '(find-file :wk "find")
 	"fs" '(save-buffer :wk "save")
-	"fr" '(consult-recent-file :wk "recent")))
+	"fr" '(consult-recent-file :wk "recent")
+	))
 #+end_src
 *** Popup scratch buffer
 Open /scratch/ as popup in current window.
@@ -921,11 +903,13 @@ Set type of line numbers and tabs width, also keybind to toggle line numbers.
   :after general
   :init
   (nto/leader
-	"tl" '(display-line-numbers-mode :wk "line numbers"))
+	"tl" '(display-line-numbers-mode :wk "line numbers")
+	)
   (setq display-line-numbers-type 'relative)
   (setq tab-always-indent 'complete)
   (setq-default indent-tabs-mode t)
-  (setq-default tab-width 4))
+  (setq-default tab-width 4)
+  )
 #+end_src
 
 *** A butler for whitespace character
@@ -2116,17 +2100,6 @@ Module ~init-os.el~ ends here
      (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
      (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
      (yaml "https://github.com/ikatyang/tree-sitter-yaml"))))
-
-(use-package tree-sitter-langs)
-
-(use-package tree-sitter-indent)
-
-(use-package treesit-auto
-  :custom
-  (treesit-auto-install 'prompt)
-  :config
-  (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
 #+end_src
 *** TODO Setup for eglot
 #+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
@@ -2137,6 +2110,14 @@ Module ~init-os.el~ ends here
 #+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
 (use-package go-mode)
 #+end_src
+**** Odin lang
+#+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
+(use-package odin-mode
+  :straight (odin-mode
+			 :type git
+			 :host sourcehut
+			 :repo "mgmarlow/odin-mode"))
+#+end_src
 **** Zig lang
 For now I don't plan to use LSP with zig.
 #+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
@@ -2144,7 +2125,7 @@ For now I don't plan to use LSP with zig.
 #+end_src
 
 **** Python lang
-For occasional scripting
+For occasional scripting, ps I hate python!!!
 #+begin_src emacs-lisp :tangle "lisp/init-prog.el" :mkdirp yes
 (use-package python-mode)
 #+end_src
@@ -2286,125 +2267,3 @@ Module ~init-app.el~ ends here
 
 *~/.emacs.d/~/.emacs.d/* Module ~init-exwm.el~
 I'm givin another shot to exwm, the concept is really awesome but it always fell a little bit clumsy.
-*** Install exwm
-#+begin_src emacs-lisp :tangle "lisp/init-exwm.el" :mkdirp yes
-(when (eq system-type 'gnu/linux)
-  (use-package exwm
-	:config
-	;; make more room for x11 windows
-	(menu-bar-mode -1)
-	;; battery status in modeline
-	(display-battery-mode)
-
-	;; time display in modeline
-	(display-time-mode)
-
-	(setq exwm-workspace-number 9)
-
-	;; system tray
-	(require 'exwm-systemtray)
-	(exwm-systemtray-enable)
-	(setq exwm-systemtray-height 15)
-
-	;; multi monitor
-	(require 'exwm-randr)
-	;; config randr
-	(setq exwm-randr-workspace-monitor-plist '(0 "eDP" 1 "DisplayPort-3"))
-
-	(exwm-randr-enable)
-
-	(setq nto/layout "us")
-
-	(setq exwm-input-global-keys
-		  `(
-			(,(kbd "s-r") . exwm-reset)
-			(,(kbd "s-w") . exwm-workspace-switch)
-			(,(kbd "s-m") . exwm-workspace-move-window)
-
-			,@(mapcar (lambda (i)
-						`(,(kbd (format "s-%d" i)) .
-						  (lambda ()
-							(interactive)
-							(exwm-workspace-switch-create ,i))))
-					  (number-sequence 0 9))
-
-			(,(kbd "s-f") . exwm-layout-toggle-fullscreen)
-			(,(kbd "s-F") . exwm-floating-toggle-floating)
-
-			(,(kbd "s-q") . delete-window)
-			(,(kbd "s-o") . ace-window)
-
-			(,(kbd "s-h") . windmove-left)
-			(,(kbd "s-j") . windmove-down)
-			(,(kbd "s-k") . windmove-up)
-			(,(kbd "s-l") . windmove-right)
-
-			(,(kbd "s-H") . (lambda () (interactive) (exwm-layout-shrink-window-horizontally 20)))
-			(,(kbd "s-J") . (lambda () (interactive) (exwm-layout-shrink-window 20)))
-			(,(kbd "s-K") . (lambda () (interactive) (exwm-layout-enlarge-window 20)))
-			(,(kbd "s-L") . (lambda () (interactive) (exwm-layout-enlarge-window-horizontally 20)))
-
-			(,(kbd "s-i") . (lambda ()
-							  (interactive)
-							  (if (string= nto/layout "us")
-								  (progn
-									(setq nto/layout "us-intl")
-									(start-process "" nil "/usr/bin/setxkbmap" "us" "-variant" "intl" "-option" "ctrl:nocaps")
-									(message "switching to us intl"))
-								(progn
-								  (setq nto/layout "us")
-								  (start-process "" nil "/usr/bin/setxkbmap" "us" "-option" "ctrl:nocaps")
-								  (message "switching to us")))))))
-
-	(setq exwm-floating-border-width 5)
-
-	(add-hook 'exwm-update-class-hook
-			  (lambda ()
-				(unless (or (string-prefix-p "sun-awt-X11-" exwm-instance-name)
-							(string= "gimp" exwm-instance-name))
-				  (exwm-workspace-rename-buffer exwm-class-name))))
-	(add-hook 'exwm-update-title-hook
-			  (lambda ()
-				(when (or (not exwm-instance-name)
-						  (string-prefix-p "sun-awt-X11-" exwm-instance-name)
-						  (string= "gimp" exwm-instance-name))
-				  (exwm-workspace-rename-buffer exwm-title))))
-
-	(setq exwm-input-simulation-keys
-		  '(([?\C-b] . [left])
-			([?\C-f] . [right])
-			([?\C-p] . [up])
-			([?\C-n] . [down])
-			([?\C-a] . [home])
-			([?\C-e] . [end])
-			([?\M-v] . [prior])
-			([?\C-v] . [next])
-			([?\C-d] . [delete])
-			([?\C-k] . [S-end delete])
-			([?\C-s] . [?\C-f])))
-
-	(add-hook 'exwm-init-hook
-			  (lambda ()
-				(progn
-				  ;; setup composite transparency and background
-				  (start-process "" nil "/usr/bin/picom" "-b")
-				  ;; setup italian layout for keyboard
-				  (start-process "setxkbmap" nil "/usr/bin/setxkbmap" "us" "-option" "ctrl:nocaps")))))
-
-  (use-package exwm-modeline
-	:if (eq system-type 'gnu/linux)
-	:after exwm
-	:init
-	(add-hook 'exwm-init-hook #'exwm-modeline-mode))
-
-  (use-package counsel
-	:if (eq system-type 'gnu/linux)
-	:after exwm
-	:init
-	(exwm-input-set-key (kbd "s-d") #'counsel-linux-app)))
-#+end_src
-*** End
-Module ~init-exwm.el~ ends here.
-#+begin_src emacs-lisp :tangle "lisp/init-exwm.el" :mkdirp yes
-(provide 'init-exwm)
-#+end_src
